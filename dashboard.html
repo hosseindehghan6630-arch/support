@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>داشبورد</title>
+<style>
+  :root {
+    --navy:#1b2a4a; --blue:#2b5fd9; --red:#c62f2f; --amber:#b8650a; --green:#1f7a4d;
+    --ink:#14202b; --mute:#5d6b79; --line:#dde2e8; --bg:#eceff3; --soft:#f6f8fa; --hair:#edf0f3;
+    --red-bg:#fdeeee; --amber-bg:#fff3e1; --blue-bg:#e8efff; --green-bg:#e5f3ec; --red-soft:#fffafa;
+    --surface:#ffffff; --red-ink:#a12222; --green-ink:#17613c; --amber-ink:#8f4e05; --blue-ink:#1f47a8;
+    --c1:#3b64e8; --c2:#0f9d8a; --c3:#f0a21a; --c4:#e5484d; --c5:#8b5cf6; --c6:#0ea5e9; --c7:#94a3b8; --c8:#ec4899;
+    --shadow:0 1px 2px rgba(16,24,40,.05);
+  }
+  body.dark {
+    --navy:#c9d4f7; --blue:#7a9bff; --red:#ff6b6b; --amber:#f2a93b; --green:#3fbf7f;
+    --ink:#e7ebf3; --mute:#9aa6b8; --line:#2a3445; --bg:#0e141f; --soft:#151d2b; --hair:#1f293a; --surface:#172030;
+    --red-bg:#3a1c20; --amber-bg:#3a2d15; --blue-bg:#1b2b52; --green-bg:#173424; --red-soft:#211619;
+    --red-ink:#ff9d9d; --green-ink:#7be0a8; --amber-ink:#f6c885; --blue-ink:#a9c0ff;
+    --c1:#7b97ff; --c2:#2dd4bf; --c3:#fbbf24; --c4:#ff7a7f; --c5:#a78bfa; --c6:#38bdf8; --c7:#64748b; --c8:#f472b6;
+    --shadow:none; color-scheme:dark;
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  html { scroll-padding-top:110px; }
+  body { margin:0; font-family:"Vazirmatn","Vazir","IRANSansX","IRANSans",system-ui,-apple-system,"Segoe UI","SF Arabic","Noto Sans Arabic",Tahoma,Arial,sans-serif; font-size:14.5px; line-height:1.75; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; font-variant-numeric:tabular-nums; }
+  button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+
+  /* ---------- سربرگ ثابت: عنوان + تب‌ها ---------- */
+  .bar { position:sticky; top:0; z-index:10; background:var(--surface); border-bottom:1px solid var(--line); }
+  .bar-in { max-width:1180px; margin:0 auto; padding:0 18px; }
+  .top { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 0 2px; }
+  h1 { font-size:18px; margin:0; font-weight:800; line-height:1.5; color:var(--navy); }
+  .updated { color:var(--mute); font-size:12.5px; margin-top:1px; }
+  .updated::before { content:""; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green); margin-left:7px; vertical-align:1px; }
+  .tabs { display:flex; gap:2px; margin:4px 0 0; overflow-x:auto; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tabs button { background:none; border:0; border-bottom:3px solid transparent; border-radius:0; color:var(--mute); white-space:nowrap; padding:11px 15px 9px; font-size:14px; font-weight:600; }
+  .tabs button:hover { color:var(--ink); background:var(--soft); }
+  .tabs button.active { color:var(--navy); border-bottom-color:var(--navy); font-weight:800; }
+  .tabs .dot { display:inline-block; min-width:19px; padding:0 6px; margin-right:6px; border-radius:10px; background:var(--red); color:#fff; font-size:11.5px; font-weight:700; line-height:19px; text-align:center; }
+
+  .wrap { max-width:1180px; margin:0 auto; padding:16px 18px 40px; }
+
+  /* ---------- دکمه‌ها و فرم‌ها ---------- */
+  button, .btn { font-family:inherit; cursor:pointer; border:1px solid transparent; border-radius:8px; padding:6px 14px; font-size:13.5px; font-weight:600; line-height:1.7; text-decoration:none; display:inline-block; transition:background .15s, border-color .15s; }
+  .ghost { background:var(--surface); color:var(--ink); border-color:var(--line); }
+  .ghost:hover { background:var(--soft); border-color:#c9d0d8; }
+  a.btn:not(.ok):not(.no):not(.ghost) { background:var(--blue-bg); color:var(--navy); }
+  a.btn:not(.ok):not(.no):not(.ghost):hover { background:#d8e4ff; }
+  .btn.ok { background:var(--green); color:#fff; }
+  .btn.ok:hover { background:var(--green-ink); }
+  .btn.no { background:var(--surface); color:var(--red); border-color:#e8b9b9; }
+  .btn.no:hover { background:var(--red-bg); }
+  .qbtn { background:var(--surface); color:var(--ink); border:1px solid var(--line); padding:4px 11px; font-size:13px; font-weight:500; }
+  .qbtn:hover { background:var(--blue-bg); border-color:#bcd0ff; color:var(--navy); }
+  select, input[type=search], input[type=date] { font-family:inherit; font-size:13.5px; padding:6px 10px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); }
+  select, input[type=search] { min-width:130px; }
+
+  /* ---------- نوار فیلتر (بدون کادر؛ فقط ابزار) ---------- */
+  .filters { display:flex; flex-wrap:wrap; gap:8px 12px; padding:2px 0 14px; align-items:center; }
+  .filters label { font-size:13px; color:var(--mute); display:flex; align-items:center; gap:6px; font-weight:600; }
+  .qgroup { display:inline-flex; gap:6px; flex-wrap:wrap; }
+  .jl { font-size:12.5px; color:var(--blue); min-width:70px; }
+  .hint { font-size:12.5px; color:var(--mute); }
+  .grow { flex:1; }
+  .tab[hidden] { display:none; }
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#111827; color:#fff; padding:10px 20px; border-radius:10px; font-size:14px; z-index:30; box-shadow:0 6px 20px rgba(20,32,43,.28); }
+  #alertBar { background:var(--red-bg); border:1px solid #f0c2c2; color:var(--red-ink); border-radius:10px; padding:10px 16px; margin:0 0 14px; font-weight:700; font-size:13.5px; }
+  #alertBar a { color:var(--red-ink); text-decoration:none; } #alertBar a:hover { text-decoration:underline; } #alertBar .sep { margin:0 10px; opacity:.4; }
+
+  /* ---------- نوار وضعیت: تنها المان پررنگ صفحه ---------- */
+  .sumcards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:16px; }
+  .big { background:var(--surface); padding:16px 18px 14px; cursor:pointer; transition:background .12s; }
+  .big:hover { background:var(--soft); }
+  .big .n { font-size:34px; font-weight:800; line-height:1.25; }
+  .big .l { font-size:13.5px; font-weight:700; color:var(--ink); margin-top:2px; }
+  .big .l::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--line); margin-left:7px; vertical-align:1px; }
+  .big .s { font-size:12.5px; color:var(--mute); margin-top:4px; min-height:16px; }
+  .big.red .n { color:var(--red); }     .big.red .l::before { background:var(--red); }
+  .big.amber .n { color:var(--amber); } .big.amber .l::before { background:var(--amber); }
+  .big.blue .n { color:var(--blue); }   .big.blue .l::before { background:var(--blue); }
+  .big.green .n { color:var(--green); } .big.green .l::before { background:var(--green); }
+  .big.zero .n { color:#a3adb8; }       .big.zero .l::before { background:#c9d0d8; }
+
+  /* ---------- بلوک‌ها و ردیف‌ها ---------- */
+  .blocks { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:14px; }
+  .block { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .block h2 { font-size:15.5px; margin:0 0 8px; font-weight:800; color:var(--navy); }
+  #blk-overdue h2::before, #blk-pending h2::before, #blk-review h2::before, #blk-support h2::before { content:""; display:inline-block; width:9px; height:9px; border-radius:50%; margin-left:9px; vertical-align:1px; }
+  #blk-overdue h2::before { background:var(--red); } #blk-pending h2::before { background:var(--amber); }
+  #blk-review h2::before { background:var(--blue); } #blk-support h2::before { background:var(--navy); }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-top:1px solid var(--hair); flex-wrap:wrap; }
+  .row:first-of-type { border-top:0; }
+  .row.overdue { background:linear-gradient(270deg,var(--red-bg),transparent 55%); margin:0 -18px; padding:12px 18px; }
+  .r-main { min-width:0; flex:1 1 220px; }
+  .r-title { font-weight:700; font-size:14.5px; }
+  .r-sub { color:var(--mute); font-size:13px; margin-top:2px; line-height:1.9; }
+  .r-side { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .amt { font-weight:700; font-size:14px; direction:rtl; }
+  .late { color:var(--red); font-weight:700; }
+  .soon { color:var(--amber); font-weight:700; }
+  .empty { color:var(--mute); text-align:center; padding:22px 0; font-size:13px; }
+  .thumb { width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
+  .tag { display:inline-block; background:var(--soft); color:var(--navy); border:1px solid var(--line); border-radius:6px; padding:0 8px; font-size:12px; font-weight:600; margin-left:4px; }
+  .tag.late-tag { background:var(--red-bg); color:var(--red-ink); border-color:#f0c2c2; }
+  .tag.ok-tag { background:var(--green-bg); color:var(--green-ink); border-color:#bfe0cd; }
+
+  /* ---------- کارت فروشگاه ---------- */
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(285px,1fr)); gap:12px; }
+  .scard { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--green); border-radius:12px; padding:14px 16px; }
+  .scard.overdue { border-top-color:var(--red); background:var(--red-soft); }
+  .scard.pending { border-top-color:var(--amber); }
+  .scard.review { border-top-color:var(--blue); }
+  .sc-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .sc-name { font-weight:800; font-size:15.5px; }
+  .badge { font-size:12px; font-weight:700; border-radius:20px; padding:1px 11px; white-space:nowrap; }
+  .b-overdue { background:var(--red-bg); color:var(--red-ink); } .b-pending { background:var(--amber-bg); color:var(--amber-ink); }
+  .b-review { background:var(--blue-bg); color:var(--blue-ink); } .b-ok { background:var(--green-bg); color:var(--green-ink); }
+  .sc-amount { font-size:21px; font-weight:800; margin:10px 0 4px; }
+  .sc-line { font-size:13.5px; margin-bottom:8px; min-height:18px; }
+  .sc-foot { font-size:12.5px; color:var(--mute); border-top:1px solid var(--hair); padding-top:8px; line-height:1.8; }
+
+  /* ---------- جدول‌ها ---------- */
+  table { border-collapse:separate; border-spacing:0; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  th, td { padding:10px 14px; text-align:right; font-size:13.5px; border-bottom:1px solid var(--hair); }
+  th { background:var(--soft); color:var(--mute); font-weight:700; font-size:12.5px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  tbody tr:last-child td { border-bottom:0; }
+  tbody tr:hover td { background:var(--soft); }
+  tfoot td { font-weight:800; background:var(--soft); border-top:1px solid var(--line); border-bottom:0; }
+  .tscroll { overflow-x:auto; }
+  .total { padding:2px 2px 12px; font-size:15px; font-weight:600; }
+
+  /* ---------- نمودارها ---------- */
+  .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:14px; margin-bottom:16px; }
+  .chart-box { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .chart-box.wide { grid-column:1 / -1; }
+  .chart-box h3 { margin:0 0 12px; font-size:14.5px; font-weight:800; color:var(--navy); }
+  .vplot { display:flex; gap:6px; direction:ltr; overflow-x:auto; }
+  .vb { flex:0 0 44px; display:flex; flex-direction:column; align-items:center; }
+  .varea { height:150px; width:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; }
+  .vv { font-size:10px; color:var(--mute); } .vl { font-size:10px; color:var(--mute); margin-top:4px; }
+  .vf { width:68%; background:var(--blue); border-radius:3px 3px 0 0; min-height:2px; }
+  .hb { display:flex; align-items:center; gap:8px; margin:7px 0; font-size:13px; }
+  .hl { width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ht { flex:1; background:var(--hair); border-radius:4px; height:12px; direction:ltr; }
+  .hf { background:var(--blue); height:100%; border-radius:4px; }
+  .hv { min-width:90px; text-align:left; color:var(--ink); }
+  .kpi-note { color:var(--mute); font-size:13px; line-height:1.9; margin:-4px 0 12px; }
+
+  /* ---------- چراغ وضعیت مدیر ---------- */
+  .mlight { display:flex; gap:14px; align-items:center; background:var(--green-bg); border:1px solid #bfe0cd; border-radius:12px; padding:14px 18px; margin-bottom:14px; font-size:15.5px; font-weight:600; }
+  .mlight.red { background:var(--red-bg); border-color:#f0c2c2; }
+  .mlight.amber { background:var(--amber-bg); border-color:#f3d6a6; }
+  .ml-ic { font-size:30px; line-height:1; }
+
+  textarea { background:var(--surface); color:var(--ink); }
+  body.dark .btn.ok { color:#06210f; } body.dark .big:hover { background:#1b2535; }
+  .block, .chart-box, .scard, .sumcards, table { box-shadow:var(--shadow); }
+
+  /* ---------- نمودارها ---------- */
+  #tip { position:fixed; z-index:50; display:none; background:#111827; color:#f3f4f6; padding:6px 11px; border-radius:7px; font-size:12.5px; line-height:1.6; pointer-events:none; max-width:280px; direction:rtl; box-shadow:0 6px 18px rgba(0,0,0,.28); }
+  .chart-box h3 small { font-weight:500; color:var(--mute); font-size:12px; margin-right:6px; }
+  .chart-box svg text { font-family:inherit; }
+  .ax { fill:var(--mute); font-size:11px; }
+  .gl { stroke:var(--line); stroke-width:1; }
+  .cbar { transition:opacity .12s; } .cbar:hover { opacity:.72; }
+  .lg { display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:var(--mute); margin:0 0 8px; }
+  .lg i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-left:6px; vertical-align:-1px; }
+  .donut { display:flex; gap:18px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .donut svg { width:150px; height:150px; flex:none; }
+  .donut .sl { transition:opacity .12s; } .donut svg:hover .sl { opacity:.5; } .donut svg .sl:hover { opacity:1; }
+  .dn { font-size:21px; font-weight:800; fill:var(--ink); } .dlb { font-size:10.5px; fill:var(--mute); }
+  .dleg { flex:1; min-width:170px; }
+  .dl-row { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px; border-bottom:1px solid var(--hair); }
+  .dl-row:last-child { border-bottom:0; }
+  .dl-row .sw { width:10px; height:10px; border-radius:3px; flex:none; }
+  .dl-n { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .dl-v { font-weight:700; } .dl-p { color:var(--mute); min-width:40px; text-align:left; }
+  .big { position:relative; } .spk { position:absolute; left:14px; top:16px; } .spark { width:84px; height:26px; display:block; }
+  .hf { background:var(--c1); } .ht { background:var(--hair); height:10px; } .hb .hv { font-weight:600; }
+  @media (max-width:640px) {
+    .blocks { grid-template-columns:1fr; }
+    .wrap, .bar-in { padding-left:12px; padding-right:12px; }
+    .sumcards { grid-template-columns:repeat(2,1fr); }
+    .big .n { font-size:28px; }
+    .row.overdue { margin:0 -12px; padding:12px; }
+    h1 { font-size:16px; }
+    .sumcards > .big:last-child:nth-child(odd) { grid-column:1 / -1; }
+    .filters { gap:8px; }
+    .filters label { flex:1 1 46%; justify-content:space-between; }
+    .filters label select, .filters label input { flex:1; min-width:0; width:100%; max-width:62%; }
+    .filters .jl { display:none; }
+    .bar button[onclick="window.print()"] { display:none; }
+  }
+  body.no-settle #blk-overdue, body.no-settle #blk-pending { display:none; }
+  body.no-review #blk-review { display:none; }
+  body.no-receipt #boxDaily, body.no-receipt #boxStore { display:none; }
+  body.no-receipt #todayLine, body.no-receipt #tab-receipts, body.no-receipt .tabs button[data-tab="receipts"] { display:none; }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+  @media print {
+    .bar { position:static; border:0; }
+    .tabs, .filters, .no-print, .btn, button { display:none !important; }
+    body { background:var(--surface); } .tab[hidden] { display:block !important; }
+  }
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="top">
+    <div><h1>داشبورد رسیدها و پشتیبانی</h1><div class="updated">آخرین به‌روزرسانی: <span id="upd"></span> — خودکار هر ۱۵ ثانیه</div></div>
+    <div class="no-print" style="display:flex;gap:8px;align-items:center"><span id="whoami" class="hint"></span><a class="btn ghost" id="logoutBtn" href="/logout" hidden>خروج</a><button class="ghost" id="themeBtn" title="تغییر پوسته‌ی روشن/تیره" aria-label="تغییر پوسته">☾</button><button class="ghost" onclick="window.print()">چاپ</button></div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="manager">خلاصه‌ی مدیر</button>
+    <button data-tab="today">امروز <span class="dot" id="dToday" hidden></span></button>
+    <button data-tab="stores">فروشگاه‌ها</button>
+    <button data-tab="receipts">رسیدها</button>
+    <button data-tab="support">پشتیبانی <span class="dot" id="dSupport" hidden></span></button>
+    <button data-tab="kpi">KPI پشتیبانی</button>
+    <button data-tab="report">گزارش</button>
+  </nav>
+</div></header>
+<div class="wrap">
+  <div id="alertBar" class="no-print" hidden></div>
+
+  <div class="filters" id="filters">
+    <label>فروشگاه <select id="fStore"></select></label>
+    <label>از تاریخ <input type="date" id="dFrom"></label><span class="jl" id="dFromJ"></span>
+    <label>تا تاریخ <input type="date" id="dTo"></label><span class="jl" id="dToJ"></span>
+    <span class="qgroup">
+      <button class="qbtn" onclick="quick('today')">امروز</button>
+      <button class="qbtn" onclick="quick('yesterday')">دیروز</button>
+      <button class="qbtn" onclick="quick('7')">۷ روز اخیر</button>
+      <button class="qbtn" onclick="quick('month')">این ماه</button>
+      <button class="qbtn" onclick="quick('all')">همه</button>
+    </span>
+    <label id="lBasis" hidden>رسیدها بر اساس
+      <select id="rBasis">
+        <option value="sent">تاریخ ارسال رسید</option>
+        <option value="cycle">روز اعلام تسویه (تا ساعت ۱۴ فردا)</option>
+      </select>
+    </label>
+    <div class="hint" id="rangeHint" style="flex-basis:100%"></div>
+  </div>
+
+  <section class="tab" id="tab-manager" hidden>
+    <div id="mgrLight" class="mlight"></div>
+    <div class="sumcards" id="mgrCards"></div>
+    <div class="block" style="margin-bottom:14px"><h2>فروشگاه‌های مشکل‌دار</h2><div class="hint" style="margin:-4px 0 8px">دیرکرد پرداخت، تیکت معوق یا موضوع تکراری در ۳۰ روز اخیر — مرتب بر اساس شدت</div><div class="tscroll" id="mgrStores"></div></div>
+    <div class="block" style="margin-bottom:14px"><h2>عملکرد تیم — ۳۰ روز اخیر</h2><div class="tscroll" id="mgrTeam"></div></div>
+    <div class="charts">
+      <div class="chart-box"><h3>وضعیت تیکت‌ها <small>۳۰ روز اخیر</small></h3><div id="mgrStatus"></div></div>
+      <div class="chart-box"><h3>رعایت هدف زمانی <small>۳۰ روز اخیر</small></h3><div id="mgrSla"></div></div>
+      <div class="chart-box"><h3>سهم تیم‌ها از تیکت‌ها <small>۳۰ روز اخیر</small></h3><div id="mgrTeamPie"></div></div>
+      <div class="chart-box wide"><h3>تیکت ثبت‌شده و بسته‌شده <small>۳۰ روز</small></h3><div id="mgrTrend1"></div></div>
+      <div class="chart-box wide"><h3>میانگین زمان کل پیگیری (ساعت) <small>۳۰ روز</small></h3><div id="mgrTrend2"></div></div>
+      <div class="chart-box"><h3>ساعت‌های اوج ثبت تیکت <small>۳۰ روز</small></h3><div id="mgrHours"></div></div>
+      <div class="chart-box"><h3>روزهای پرکار هفته <small>۳۰ روز</small></h3><div id="mgrWeek"></div></div>
+      <div class="chart-box wide"><h3>پرتکرارترین موضوعات <small>۳۰ روز</small></h3><div id="mgrTopics"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-today">
+    <div class="sumcards" id="sumcards"></div>
+    <div id="todayLine" class="total"></div>
+    <div class="blocks">
+      <div class="block" id="blk-overdue"><h2>دیرکرد دارند (مهلت گذشته)</h2><div id="listOverdue"></div></div>
+      <div class="block" id="blk-pending"><h2>منتظر پرداخت</h2><div id="listPending"></div></div>
+      <div class="block" id="blk-review"><h2>رسیدهایی که ربات نتونست تایید کنه</h2><div id="listReview"></div></div>
+      <div class="block" id="blk-support"><h2>درخواست‌های بدون پاسخ</h2><div id="listSupportOpen"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-stores" hidden>
+    <div class="filters" style="display:flex">
+      <label>وضعیت
+        <select id="sStatus">
+          <option value="">همه</option>
+          <option value="overdue">دیرکرد</option>
+          <option value="pending">منتظر پرداخت</option>
+          <option value="review">رسید نیازمند بررسی</option>
+          <option value="ok">بدون مشکل</option>
+        </select>
+      </label>
+      <label>جستجو <input type="search" id="sSearch" placeholder="نام فروشگاه"></label>
+      <span class="grow"></span>
+      <span id="sCount" style="font-size:12px;color:var(--mute)"></span>
+    </div>
+    <div class="grid" id="storeGrid"></div>
+  </section>
+
+  <section class="tab" id="tab-receipts" hidden>
+    <div class="total" id="recTotal"></div>
+    <div class="no-print" style="margin-bottom:10px"><button class="ghost" id="expReceipts">⬇ خروجی اکسل</button></div>
+    <div class="tscroll" id="recTable"></div>
+  </section>
+
+  <section class="tab" id="tab-support" hidden>
+    <div class="filters" style="display:flex">
+      <label>وضعیت
+        <select id="fSupStatus">
+          <option value="">همه</option>
+          <option value="overdue">⏰ معوق (خارج از هدف)</option>
+          <option value="wait">در انتظار پیگیری</option>
+          <option value="review">در حال بررسی</option>
+          <option value="done">پیگیری شده</option>
+        </select>
+      </label>
+      <label>تیم <select id="fTeam"></select></label>
+      <span class="grow"></span>
+      <button class="ghost no-print" id="expSupport">⬇ خروجی اکسل</button>
+    </div>
+    <div class="total" id="supTotal"></div>
+    <div class="block" id="supportList"></div>
+  </section>
+
+  <section class="tab" id="tab-kpi" hidden>
+    <div class="total" id="kpiTitle"></div>
+    <div class="kpi-note">واکنش = از ثبت تیکت تا «شروع بررسی» &nbsp;•&nbsp; بررسی تا جواب = از «شروع بررسی» تا «پیگیری شد» (جواب به وندور) &nbsp;•&nbsp; کل = از ثبت تا «پیگیری شد». تیکت‌های قدیمیِ بدون زمان، توی میانگین‌ها حساب نمی‌شن.</div>
+    <div class="sumcards" id="kpiCards"></div>
+    <div class="charts" id="kpiCharts"></div>
+    <div class="block"><div class="tscroll" id="kpiTable"></div></div>
+    <div class="block" style="margin-top:14px"><div class="tscroll" id="kpiInsights"></div></div>
+    <div class="no-print" style="margin-top:12px"><button class="ghost" id="expKpi">⬇ خروجی اکسل KPI (به تفکیک تیم)</button></div>
+  </section>
+
+  <section class="tab" id="tab-report" hidden>
+    <div class="total" id="repTitle"></div>
+    <div class="charts">
+      <div class="chart-box wide" id="boxDaily"><h3>جمع رسیدها در هر روز <small>میلیون تومان</small></h3><div id="chDaily"></div></div>
+      <div class="chart-box" id="boxStore"><h3>سهم فروشگاه‌ها از جمع رسیدها</h3><div id="chStore"></div></div>
+      <div class="chart-box wide"><h3>درخواست‌های پشتیبانی در هر روز</h3><div id="chTick"></div></div>
+      <div class="chart-box"><h3>سهم موضوع‌ها</h3><div id="chTopic"></div></div>
+      <div class="chart-box"><h3>سهم تیم‌ها</h3><div id="chTeam"></div></div>
+      <div class="chart-box"><h3>درخواست‌ها به تفکیک فروشگاه</h3><div id="chStoreTick"></div></div>
+    </div>
+    <div class="no-print" style="margin-bottom:10px"><button class="ghost" id="expReport">⬇ خروجی اکسل (خلاصه‌ی فروشگاه‌ها)</button></div>
+    <div class="tscroll" id="reportTable"></div>
+  </section>
+</div>
+
+<div id="toast" hidden></div>
+<div id="rsBox" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:center;justify-content:center">
+  <div style="background:var(--surface);color:var(--ink);border-radius:12px;padding:16px;width:min(94vw,480px)">
+    <h3 style="margin:0 0 6px;font-size:16px">☑ پیگیری شد — پیام به فروشگاه</h3>
+    <div class="hint" id="rsInfo" style="margin-bottom:8px"></div>
+    <textarea id="rsMsg" rows="7" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:9px;border:1px solid var(--line);border-radius:8px" placeholder="پیامی که می‌خوای برای فروشگاه بره رو بنویس. خالی بذاری، پیام پیش‌فرض می‌ره."></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-start;margin-top:10px">
+      <button class="btn ok" id="rsSend">ارسال و بستن تیکت</button>
+      <button class="ghost" onclick="$('rsBox').hidden=true">انصراف</button>
+    </div>
+  </div>
+</div>
+<script>var ROLE="viewer",CSRF="",USER="";</script>
+<script id="data" type="application/json">{"updated": "2026-10-14 10:28:12", "receipts": [], "settlements": [], "reviews": [], "support": [{"id": "1791896733970_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 34.0, "mWork": 0.1, "mTotal": 34.1, "mAge": null, "doneDate": "2026-10-13", "hour": 16, "wd": 3, "done": true, "date": "2026-10-13", "at": "1405/07/21 16:35", "store": "پارسه", "user": "حسین دهقان", "topic": "درخواست تأمین اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "فایل CSV ضمیمه شد (ساختار «نام کالا / تعداد» توش پیدا نشد)", "photo": "support_attachments/%D9%BE%D8%A7%D8%B1%D8%B3%D9%87/20261013_163533_1369624035_selected_products%20%281%29.csv"}, {"id": "1791896243936_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 1.6, "mWork": 0.1, "mTotal": 1.7, "mAge": null, "doneDate": "2026-10-13", "hour": 16, "wd": 3, "done": true, "date": "2026-10-13", "at": "1405/07/21 16:27", "store": "پارسه", "user": "حسین دهقان", "topic": "درخواست تأمین اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "فایل CSV ضمیمه شد (ساختار «نام کالا / تعداد» توش پیدا نشد)", "photo": "support_attachments/%D9%BE%D8%A7%D8%B1%D8%B3%D9%87/20261013_162723_1369624035_selected_products.csv"}, {"id": "1791892533219_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 2.2, "mWork": 0.1, "mTotal": 2.3, "mAge": null, "doneDate": "2026-10-13", "hour": 15, "wd": 3, "done": true, "date": "2026-10-13", "at": "1405/07/21 15:25", "store": "پارسه", "user": "حسین دهقان", "topic": "درخواست تأمین اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "j", "photo": ""}, {"id": "1791623147311_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 0.4, "mWork": 0.2, "mTotal": 0.7, "mAge": null, "doneDate": "2026-10-10", "hour": 12, "wd": 0, "done": true, "date": "2026-10-10", "at": "1405/07/18 12:35", "store": "پارسه", "user": "حسین دهقان", "topic": "بررسی مالی / مغایرت صورتحساب", "team": "اکانت منیجمنت", "desc": "5555", "photo": ""}, {"id": "1791615260108_38658015", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 12.9, "mWork": 0.1, "mTotal": 13.1, "mAge": null, "doneDate": "2026-10-10", "hour": 10, "wd": 0, "done": true, "date": "2026-10-10", "at": "1405/07/18 10:24", "store": "مانیتورینگ فرنچایز دلی مارکت", "user": "Abass Mohamadi", "topic": "مرجوعی کالا - جمع‌آوری نشده توسط ساپلایر", "team": "اکانت منیجمنت", "desc": "وقت بخیر ربات کار نمیکنه و باگ داره", "photo": ""}, {"id": "1791615244380_38658015", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 13.3, "mWork": 0.1, "mTotal": 13.4, "mAge": null, "doneDate": "2026-10-10", "hour": 10, "wd": 0, "done": true, "date": "2026-10-10", "at": "1405/07/18 10:24", "store": "مانیتورینگ فرنچایز دلی مارکت", "user": "Abass Mohamadi", "topic": "مرجوعی کالا - جمع‌آوری نشده توسط ساپلایر", "team": "اکانت منیجمنت", "desc": "سلام شب بخیر\nربات انگاری که به مشکل خورده و الان ما چند تا درخواست داشتیم .\n۱_ شیر پرچرب ماهشام نداریم.\n۲_ بار خوشگوار هم حتما نیاز داریم.\n۳_ بستنی میهن نداریم.\n۴ _ محصولات ماهشام به طور کامل در پنل فروشگاه بار گذاری نشده است.", "photo": ""}, {"id": "1791379580430_990238851", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 0.3, "mWork": 33.3, "mTotal": 33.6, "mAge": null, "doneDate": "2026-10-07", "hour": 16, "wd": 4, "done": true, "date": "2026-10-07", "at": "1405/07/15 16:56", "store": "مانیتورینگ سوپرمارکت ایرانیان ستاری", "user": "H.A", "topic": "سایر (توضیح خودم می‌نویسم)", "team": "نامشخص", "desc": "بعد از گذشت یه هفته همچنان سیگارها ثبت نشده ...", "photo": ""}, {"id": "1791378248701_1080183007", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 10.5, "mWork": 0.1, "mTotal": 10.7, "mAge": null, "doneDate": "2026-10-07", "hour": 16, "wd": 4, "done": true, "date": "2026-10-07", "at": "1405/07/15 16:34", "store": "مانیتورینگ سوپرمارکت فرهنگ پلاس", "user": "ali", "topic": "درخواست گزارش / دیتای فروش", "team": "اکانت منیجمنت", "desc": "از یک شهریور تا ۱۵ مهر", "photo": ""}, {"id": "1791367846069_1920432864", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 1.1, "mWork": 95.5, "mTotal": 96.6, "mAge": null, "doneDate": "2026-10-07", "hour": 13, "wd": 4, "done": true, "date": "2026-10-07", "at": "1405/07/15 13:40", "store": "مانیتورینگ فرنچایز مکث مارکت", "user": "mizbanm", "topic": "تاخیر در دریافت بار", "team": "اکانت منیجمنت", "desc": "تامین کننده توسن پخش ستاره کیش و توسعه مدیریت بازار هنوز بار ارسال نکردن", "photo": ""}, {"id": "1791367695820_1920432864", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 3.7, "mWork": 0.8, "mTotal": 4.5, "mAge": null, "doneDate": "2026-10-07", "hour": 13, "wd": 4, "done": true, "date": "2026-10-07", "at": "1405/07/15 13:38", "store": "مانیتورینگ فرنچایز مکث مارکت", "user": "mizbanm", "topic": "سایر (توضیح خودم می‌نویسم)", "team": "نامشخص", "desc": "دیشب آخرین سفارش ساعت 23:۲۰ نشست و تا ساعت ۲۴:۳۰ هم فروشگاه فعال بود ولی پیک نیومد تحویل بگیره آیا محصول از موجودی انبار ک کسر شده مجدد شارژ میشه؟", "photo": ""}, {"id": "1791361409179_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 0.5, "mWork": 0.2, "mTotal": 0.7, "mAge": null, "doneDate": "2026-10-07", "hour": 11, "wd": 4, "done": true, "date": "2026-10-07", "at": "1405/07/15 11:53", "store": "پارسه", "user": "حسین دهقان", "topic": "نیاز به سفارش اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "تست", "photo": ""}, {"id": "1791358396027_1201504367", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 0.7, "mWork": 6.2, "mTotal": 6.8, "mAge": null, "doneDate": "2026-10-07", "hour": 11, "wd": 4, "done": true, "date": "2026-10-07", "at": "1405/07/15 11:03", "store": "مانیتورینگ لوکس دریانی", "user": "مجید", "topic": "بررسی‌های مالی / مغایرت صورتحساب", "team": "اکانت منیجمنت", "desc": "چرا خطا میزنه", "photo": ""}, {"id": "1791282754983_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "این سیستم", "mReact": 0.3, "mWork": 0.2, "mTotal": 0.5, "mAge": null, "doneDate": "2026-10-06", "hour": 14, "wd": 3, "done": true, "date": "2026-10-06", "at": "1405/07/14 14:02", "store": "پارسه", "user": "حسین دهقان", "topic": "عدم دریافت بار (امتناع از دریافت)", "team": "اکانت منیجمنت", "desc": "تست", "photo": ""}, {"id": "1791279161772_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 13, "wd": 3, "done": true, "date": "2026-10-06", "at": "1405/07/14 13:02", "store": "پارسه", "user": "حسین دهقان", "topic": "مغایرت در وجه نقدی (ایزکش)", "team": "اکانت منیجمنت", "desc": "تست", "photo": ""}, {"id": "1791279055048_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 13, "wd": 3, "done": true, "date": "2026-10-06", "at": "1405/07/14 13:00", "store": "پارسه", "user": "حسین دهقان", "topic": "نیاز به سفارش اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "درخواست کاله", "photo": ""}, {"id": "1791272015540_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 11, "wd": 3, "done": true, "date": "2026-10-06", "at": "1405/07/14 11:03", "store": "پارسه", "user": "حسین دهقان", "topic": "درخواست تخفیف / اعلام کالای نزدیک انقضا", "team": "اکانت منیجمنت", "desc": "123456", "photo": ""}, {"id": "1791095251824_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 9, "wd": 1, "done": true, "date": "2026-10-04", "at": "1405/07/12 09:57", "store": "پارسه", "user": "حسین دهقان", "topic": "مغایرت در وجه نقدی (ایزکش)", "team": "اکانت منیجمنت", "desc": "روز 12 مغایرت داره", "photo": "support_attachments/%D9%BE%D8%A7%D8%B1%D8%B3%D9%87/20261004_095719_1369624035.jpg"}, {"id": "1791094486512_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 9, "wd": 1, "done": true, "date": "2026-10-04", "at": "1405/07/12 09:44", "store": "پارسه", "user": "حسین دهقان", "topic": "مشکل کیفیت کالای دریافتی", "team": "اکانت منیجمنت", "desc": "تاریخ گذشته اورده شده", "photo": "support_attachments/%D9%BE%D8%A7%D8%B1%D8%B3%D9%87/20261004_094430_1369624035.jpg"}, {"id": "1791011810273_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 10, "wd": 0, "done": true, "date": "2026-10-03", "at": "1405/07/11 10:46", "store": "پارسه", "user": "حسین دهقان", "topic": "بررسی‌های مالی / مغایرت صورتحساب", "team": "اکانت منیجمنت", "desc": "1234", "photo": ""}, {"id": "1790595733223_445649123", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 15, "wd": 2, "done": true, "date": "2026-09-28", "at": "1405/07/06 15:12", "store": "پارسه", "user": "زرگل", "topic": "اشکال فنی اپلیکیشن یا پنل مارت", "team": "اکانت منیجمنت", "desc": "مرسی میخوایم انبار موقت ثبت کنیم", "photo": "support_attachments/%D9%BE%D8%A7%D8%B1%D8%B3%D9%87/20260928_151144_445649123.jpg"}, {"id": "1790497153264_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 11, "wd": 1, "done": true, "date": "2026-09-27", "at": "1405/07/05 11:49", "store": "پارسه", "user": "حسین دهقان", "topic": "تغییر شماره حساب", "team": "اکانت منیجمنت", "desc": "123456789", "photo": ""}, {"id": "1790145795059_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 10, "wd": 4, "done": true, "date": "2026-09-23", "at": "1405/07/01 10:13", "store": "پارسه", "user": "حسین دهقان", "topic": "نیاز به سفارش اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "تست", "photo": ""}, {"id": "1790062848323_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 11, "wd": 3, "done": true, "date": "2026-09-22", "at": "1405/06/31 11:10", "store": "پارسه", "user": "حسین دهقان", "topic": "نیاز به سفارش اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "تکمیل شد", "photo": ""}, {"id": "1790061711694_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 10, "wd": 3, "done": true, "date": "2026-09-22", "at": "1405/06/31 10:51", "store": "پارسه", "user": "حسین دهقان", "topic": "مغایرت در وجه نقدی (ایزکش)", "team": "اکانت منیجمنت", "desc": "تست", "photo": ""}, {"id": "1789978827791_1634844874", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 11, "wd": 2, "done": true, "date": "2026-09-21", "at": "1405/06/30 11:50", "store": "پارسه", "user": "فروشگاه های زنجیره ای اسنپ", "topic": "درخواست تخفیف / اعلام کالای نزدیک انقضا", "team": "اکانت منیجمنت", "desc": "622345544343434\n1405/08/01", "photo": ""}, {"id": "1789978629011_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 11, "wd": 2, "done": true, "date": "2026-09-21", "at": "1405/06/30 11:47", "store": "پارسه", "user": "حسین دهقان", "topic": "نیاز به سفارش اقلام مورد نیاز (کسری موجودی)", "team": "اکانت منیجمنت", "desc": "نوشیدنی کاله", "photo": ""}, {"id": "1789975527744_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 10, "wd": 2, "done": true, "date": "2026-09-21", "at": "1405/06/30 10:55", "store": "پارسه", "user": "حسین دهقان", "topic": "نیاز به کمتر ارسال شدن بار", "team": "اکانت منیجمنت", "desc": "نیاز دارم ک بار کاله برام کمتر ارسال بشه فروش ندارم", "photo": ""}, {"id": "1789973700877_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 10, "wd": 2, "done": true, "date": "2026-09-21", "at": "1405/06/30 10:25", "store": "پارسه", "user": "حسین دهقان", "topic": "تغییر لوکیشن تحویل بار", "team": "اکانت منیجمنت", "desc": "درخواست تغییر لوکیشن", "photo": ""}, {"id": "1789973577462_1369624035", "slaR": 240, "slaT": 1440, "state": "done", "actor": "", "mReact": null, "mWork": null, "mTotal": null, "mAge": null, "doneDate": "", "hour": 10, "wd": 2, "done": true, "date": "2026-09-21", "at": "1405/06/30 10:22", "store": "پارسه", "user": "حسین دهقان", "topic": "اشکال فنی اپلیکیشن یا پنل مارت", "team": "اکانت منیجمنت", "desc": "تست", "photo": ""}], "known": ["مانیتورینگ سوپرمارکت 212", "مانیتورینگ سوپرمارکت ایرانیان ستاری", "مانیتورینگ سوپرمارکت بامن", "مانیتورینگ سوپرمارکت دربار", "مانیتورینگ سوپرمارکت فرهنگ پلاس", "مانیتورینگ فرنچایز آفتابگردان", "مانیتورینگ فرنچایز دلی مارکت", "مانیتورینگ فرنچایز زارع", "مانیتورینگ فرنچایز مکث مارکت", "مانیتورینگ لوکس دریانی", "پارسه", "گروه مانیاورینگ جوان", "گروه مانیتورینگ آویژه"], "sla": {"review": 240, "resolve": 1440}, "genMs": 1791961092268, "features": {"receipt": false, "review": false, "settle": false}}</script>
+<script>
+var $=function(id){return document.getElementById(id);};
+var DATA=JSON.parse($('data').textContent);
+var TABS=['manager','today','stores','receipts','support','kpi','report'];
+var TAB=(location.hash||(ROLE==='admin'?'#today':'#manager')).slice(1); if(TABS.indexOf(TAB)<0) TAB='today';
+
+/* ---------- ابزارها ---------- */
+var FA='۰۱۲۳۴۵۶۷۸۹';
+function fa(s){return String(s).replace(/\d/g,function(d){return FA[d];});}
+function ltr(x){return '<bdi dir="ltr">'+x+'</bdi>';}
+function num(n){return fa(Number(n).toLocaleString('en-US').replace(/,/g,'٬'));}
+function tmn(n){
+  n=Math.round(n);
+  if(Math.abs(n)>=1e6){var m=n/1e6, s=m>=100?Math.round(m):(m>=10?Math.round(m*10)/10:Math.round(m*100)/100); return fa(String(s).replace('.','٫'))+' میلیون تومان';}
+  return num(n)+' تومان';
+}
+function tmnHtml(n){return '<span title="'+num(n)+' تومان">'+tmn(n)+'</span>';}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function isoOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function g2j(gy,gm,gd){
+  var g_d_m=[0,31,59,90,120,151,181,212,243,273,304,334];
+  var gy2=(gm>2)?(gy+1):gy;
+  var days=355666+(365*gy)+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)+gd+g_d_m[gm-1];
+  var jy=-1595+(33*Math.floor(days/12053)); days%=12053;
+  jy+=4*Math.floor(days/1461); days%=1461;
+  if(days>365){jy+=Math.floor((days-1)/365); days=(days-1)%365;}
+  var jm=(days<186)?1+Math.floor(days/31):7+Math.floor((days-186)/30);
+  var jd=1+((days<186)?(days%31):((days-186)%30));
+  return [jy,jm,jd];
+}
+function jShort(iso){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); if(!m) return iso; var j=g2j(+m[1],+m[2],+m[3]); return fa(String(j[1]).padStart(2,'0')+'/'+String(j[2]).padStart(2,'0'));}
+function jFull(iso){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); if(!m) return ''; var j=g2j(+m[1],+m[2],+m[3]); return fa(j[0]+'/'+String(j[1]).padStart(2,'0')+'/'+String(j[2]).padStart(2,'0'));}
+function dl(iso){
+  if(!iso) return {kind:'none',ms:1e15,text:'مهلتی ثبت نشده'};
+  var ms=new Date(iso)-new Date();
+  return ms<0?{kind:'overdue',ms:ms,text:dur(Math.abs(ms)/60000)+' از مهلت گذشته'}:{kind:'pending',ms:ms,text:dur(ms/60000)+' تا مهلت'};
+}
+function exportCsv(name,headers,rows){
+  var lines=[headers].concat(rows).map(function(r){return r.map(function(c){return '"'+String(c==null?'':c).replace(/"/g,'""')+'"';}).join(',');});
+  var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=name+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- بازه‌ی تاریخ (جدا برای هر تب) ---------- */
+var TD=isoOf(new Date());
+function ago(n){var d=new Date(); d.setDate(d.getDate()-n); return isoOf(d);}
+/* پیش‌فرض: امروز و فروشگاه‌ها = همه‌ی موارد باز (تا چیزی از قلم نیفته)، رسیدها و پشتیبانی = امروز، گزارش = ۳۰ روز اخیر */
+var RANGE={manager:{f:'',t:''},today:{f:'',t:''},stores:{f:'',t:''},receipts:{f:TD,t:TD},support:{f:TD,t:TD},kpi:{f:ago(29),t:TD},report:{f:ago(29),t:TD}};
+function norm(r){var f=r.f,t=r.t; if(f&&t&&f>t){var x=f; f=t; t=x;} return {f:f,t:t};}
+function inRange(tab,iso){var r=norm(RANGE[tab]); if(!r.f&&!r.t) return true; if(!iso) return false; return (!r.f||iso>=r.f)&&(!r.t||iso<=r.t);}
+function describe(tab){
+  var r=norm(RANGE[tab]);
+  if(!r.f&&!r.t) return 'همه‌ی تاریخ‌ها';
+  if(r.f&&r.f===r.t) return (r.f===TD?'امروز ':'تاریخ ')+ltr(jFull(r.f));
+  return 'از '+(r.f?ltr(jFull(r.f)):'ابتدا')+' تا '+(r.t?ltr(jFull(r.t)):'امروز');
+}
+function storeOk(s){var f=$('fStore').value; return !f || s===f;}
+function writeBar(){
+  var r=RANGE[TAB];
+  $('dFrom').value=r.f; $('dTo').value=r.t;
+  $('dFromJ').textContent=r.f?jFull(r.f):''; $('dToJ').textContent=r.t?jFull(r.t):'';
+  $('lBasis').hidden=(TAB!=='receipts');
+  var hints={today:(feat('settle')||feat('review')?'روی این صفحه فقط موارد باز (دیرکرد، منتظر پرداخت، نیازمند بررسی، بدون پاسخ) نمایش داده می‌شن؛ تاریخ = تاریخ اعلام/ثبت.':'روی این صفحه فقط درخواست‌های باز (بدون پاسخ و معوق) نمایش داده می‌شن؛ تاریخ = تاریخ ثبت.'),
+             stores:'تاریخ = تاریخ اعلام تسویه / ثبت درخواست. «همه» یعنی همه‌ی موارد باز.',receipts:'',support:'',kpi:'تاریخ = تاریخ ثبت تیکت.',report:''};
+  $('rangeHint').textContent=hints[TAB]||'';
+}
+function readBar(){RANGE[TAB]={f:$('dFrom').value,t:$('dTo').value}; save(); writeBar(); render();}
+function quick(k){
+  var t=new Date(), d=new Date(), f='', to='';
+  if(k==='today'){f=to=TD;}
+  else if(k==='yesterday'){d.setDate(d.getDate()-1); f=to=isoOf(d);}
+  else if(k==='7'){d.setDate(d.getDate()-6); f=isoOf(d); to=TD;}
+  else if(k==='month'){var j=g2j(t.getFullYear(),t.getMonth()+1,t.getDate()); d.setDate(d.getDate()-(j[2]-1)); f=isoOf(d); to=TD;}
+  RANGE[TAB]={f:f,t:to}; save(); writeBar(); render();
+}
+
+/* ---------- محاسبات ---------- */
+function derive(){
+  var D=DATA;
+  D.settlements.forEach(function(s){s.info=s.paid?{kind:'paid',ms:1e15,text:''}:dl(s.deadline); s.toman=Math.round(s.rial/10);});
+  var stores={};
+  function get(n){n=n||'—'; return stores[n]||(stores[n]={name:n,unsettled:[],last:null,reviews:0,support:0,status:'ok'});}
+  D.known.forEach(get);
+  D.settlements.forEach(function(s){ if(!inRange('stores',s.date)) return; var o=get(s.store); if(!s.paid) o.unsettled.push(s);});
+  D.receipts.forEach(function(r){ if(!inRange('stores',r.date)) return; var o=get(r.store); if(!o.last) o.last=r;});
+  D.reviews.forEach(function(r){ if(!inRange('stores',r.date)) return; var o=get(r.store); if(r.state==='pending') o.reviews++;});
+  D.support.forEach(function(r){ if(!inRange('stores',r.date)) return; var o=get(r.store); if(!r.done) o.support++;});
+  Object.keys(stores).forEach(function(n){
+    var o=stores[n];
+    o.unsettled.sort(function(a,b){return a.info.ms-b.info.ms;});
+    var over=o.unsettled.some(function(s){return s.info.kind==='overdue';});
+    o.status=over?'overdue':(o.unsettled.length?'pending':(o.reviews?'review':'ok'));
+    o.due=o.unsettled.reduce(function(t,s){return t+s.toman;},0);
+  });
+  D._stores=stores;
+}
+
+/* ---------- امروز ---------- */
+function rowSettle(s){
+  var cls=s.info.kind==='overdue'?'late':(s.info.ms<3*3600e3?'soon':'');
+  return '<div class="row"><div class="r-main"><div class="r-title">'+esc(s.store)+'</div>'+
+    '<div class="r-sub '+cls+'">'+esc(s.info.text)+(s.deadline_j?' <span style="font-weight:normal;color:var(--mute)">(مهلت: '+ltr(fa(esc(s.deadline_j)))+')</span>':'')+'</div>'+
+    (s.announced_j?'<div class="r-sub">اعلام شده: '+ltr(fa(esc(s.announced_j)))+'</div>':'')+'</div>'+
+    '<div class="r-side"><span class="amt">'+tmnHtml(s.toman)+'</span></div></div>';
+}
+function renderToday(){
+  var D=DATA, over=[], pend=[];
+  D.settlements.forEach(function(s){ if(s.paid||!storeOk(s.store)||!inRange('today',s.date)) return; (s.info.kind==='overdue'?over:pend).push(s); });
+  over.sort(function(a,b){return a.info.ms-b.info.ms;});
+  pend.sort(function(a,b){return a.info.ms-b.info.ms;});
+  var revs=D.reviews.filter(function(r){return r.state==='pending'&&storeOk(r.store)&&inRange('today',r.date);});
+  var sup=D.support.filter(function(r){return !r.done&&storeOk(r.store)&&inRange('today',r.date);});
+  var supOd=sup.filter(function(r){return supOverdue(r);});
+  sup.sort(function(a,b){return (supOverdue(b)?1:0)-(supOverdue(a)?1:0);});
+  function sum(a){return a.reduce(function(t,s){return t+s.toman;},0);}
+
+  function card(cls,n,label,sub,target){return '<div class="big '+cls+(n?'':' zero')+'" onclick="goBlock(\''+target+'\')"><div class="n">'+num(n)+'</div><div class="l">'+label+'</div><div class="s">'+sub+'</div></div>';}
+  $('sumcards').innerHTML=
+    (feat('settle')?card('red',over.length,'فروشگاه دیرکرد دارند',over.length?('جمعاً '+tmn(sum(over))):'همه سر وقت پرداخت کردن 👌','blk-overdue')+
+    card('amber',pend.length,'منتظر پرداخت',pend.length?('جمعاً '+tmn(sum(pend))):'موردی نیست','blk-pending'):'')+
+    (feat('review')?card('blue',revs.length,'رسید نیازمند بررسی شما',revs.length?'ربات نتونست تایید کنه':'موردی نیست','blk-review'):'')+
+    card('blue',sup.length,'درخواست بدون پاسخ',sup.length?'منتظر پیگیری':'موردی نیست','blk-support')+
+    card('red',supOd.length,'تیکت معوق (خارج از هدف)',supOd.length?'نیازمند اقدام فوری':'همه داخل هدف 👌','blk-support');
+
+  var tr=D.receipts.filter(function(r){return r.date===TD&&storeOk(r.store);});
+  $('todayLine').innerHTML='✅ امروز <b>'+num(tr.length)+'</b> رسید تایید شده'+(tr.length?' — جمعاً <b>'+tmnHtml(tr.reduce(function(t,r){return t+r.toman;},0))+'</b>':'');
+
+  $('listOverdue').innerHTML=over.length?over.map(rowSettle).join(''):'<div class="empty">فروشگاهی دیرکرد نداره 👌</div>';
+  $('listPending').innerHTML=pend.length?pend.map(rowSettle).join(''):'<div class="empty">موردی منتظر پرداخت نیست</div>';
+
+  $('listReview').innerHTML=revs.length?revs.map(function(r){
+    var img=attachHtml(r.photo);
+    return '<div class="row"><div class="r-main"><div class="r-title">'+esc(r.store)+' <span class="tag">'+esc(r.sender)+'</span></div>'+
+      '<div class="r-sub">مبلغ مورد انتظار: <b>'+tmnHtml(Math.round(r.rial/10))+'</b><br>اعداد خوانده‌شده از عکس (ریال): '+String(r.found).split('، ').map(function(x){return ltr(fa(esc(x)));}).join(' ، ')+'<br>'+ltr(fa(esc(r.at)))+'</div></div>'+
+      '<div class="r-side">'+img+
+      (ROLE==='admin'?
+      '<a class="btn ok" href="#" data-id="'+esc(r.id)+'" onclick="return act(\'approve\',this.dataset.id,\'رسید تایید و ثبت بشه؟\')">✔ تایید</a>'+
+      '<a class="btn no" href="#" data-id="'+esc(r.id)+'" onclick="return act(\'reject\',this.dataset.id,\'رسید رد بشه و از کاربر عکس دوباره خواسته بشه؟\')">✖ رد</a>':
+      '<span class="badge b-review">منتظر بررسی ادمین</span>')+'</div></div>';
+  }).join(''):'<div class="empty">رسیدی منتظر بررسی نیست 👌</div>';
+
+  $('listSupportOpen').innerHTML=sup.length?sup.map(supportRow).join(''):'<div class="empty">درخواست بی‌پاسخی نیست 👌</div>';
+
+  /* عدد قرمز روی تب‌ها: همیشه همه‌ی موارد باز، مستقل از فیلتر تاریخ */
+  var aOver=D.settlements.filter(function(s){return !s.paid&&s.info.kind==='overdue';}).length;
+  var aRev=D.reviews.filter(function(r){return r.state==='pending';}).length;
+  var aSup=D.support.filter(function(r){return !r.done;}).length;
+  var open=aOver+aRev+aSup;
+  $('dToday').hidden=!open; $('dToday').textContent=num(open);
+  $('dSupport').hidden=!aSup; $('dSupport').textContent=num(aSup);
+}
+function goBlock(id){var e=$(id); if(e) e.scrollIntoView({behavior:'smooth',block:'start'});}
+
+/* ---------- درخواست پشتیبانی (ردیف مشترک) ---------- */
+var SUP_LABEL={wait:'در انتظار پیگیری',review:'در حال بررسی',done:'پیگیری شد'};
+var SUP_BADGE={wait:'b-pending',review:'b-review',done:'b-ok'};
+function supState(r){return r.state||(r.done?'done':'wait');}
+function dur(m){
+  if(m===null||m===undefined||m==='') return '—';
+  m=Number(m); if(isNaN(m)) return '—';
+  if(m<1) return 'کمتر از ۱ دقیقه';
+  if(m<60) return fa(Math.round(m))+' دقیقه';
+  var h=m/60; if(h<24) return fa(h.toFixed(1).replace('.','٫'))+' ساعت';
+  return fa((h/24).toFixed(1).replace('.','٫'))+' روز';
+}
+/* ---------- SLA (هدف زمانی) ---------- */
+var LIVE=(location.protocol.indexOf('http')===0);
+function supAge(r){
+  if(r.mAge==null) return null;
+  var extra=(LIVE&&DATA.genMs)?Math.max(0,(Date.now()-DATA.genMs)/60000):0;
+  return Number(r.mAge)+extra;
+}
+function slaOf(r){
+  var d=DATA.sla||{review:240,resolve:1440};
+  return {review:(r&&r.slaR!=null)?Number(r.slaR):d.review, resolve:(r&&r.slaT!=null)?Number(r.slaT):d.resolve};
+}
+function slaUniform(list,k){
+  var s={}; list.forEach(function(r){s[slaOf(r)[k]]=1;});
+  var ks=Object.keys(s); if(ks.length===1) return Number(ks[0]);
+  return ks.length?null:slaOf(null)[k];
+}
+function slaLabel(list,k){var u=slaUniform(list,k); return u==null?'بر اساس موضوع/تیم':dur(u);}
+function supOverdue(r){
+  if(!DATA.sla||supState(r)==='done') return null;
+  var a=supAge(r); if(a==null) return null;
+  var S=slaOf(r);
+  if(a>S.resolve) return {kind:'resolve',over:a-S.resolve};
+  if(supState(r)==='wait'&&a>S.review) return {kind:'react',over:a-S.review};
+  return null;
+}
+function attachHtml(u){
+  if(!u) return '';
+  if(/\.(jpe?g|png|webp)$/i.test(u)) return '<a href="'+u+'" target="_blank"><img class="thumb" src="'+u+'"></a>';
+  var name=decodeURIComponent(u.split('/').pop()).replace(/^\d{8}_\d{6}_\d+_/,'');
+  return '<a class="btn ghost" href="'+u+'" download title="'+esc(name)+'">📎 دانلود فایل</a>';
+}
+function supportRow(r){
+  var img=attachHtml(r.photo);
+  var st=supState(r), od=supOverdue(r);
+  var badge='<span class="badge '+SUP_BADGE[st]+'">'+SUP_LABEL[st]+'</span>';
+  var btns='';
+  if(ROLE==='admin'){
+    if(st==='wait') btns+='<a class="btn" href="#" data-id="'+esc(r.id)+'" onclick="return act(\'review\',this.dataset.id,\'این درخواست بره روی «در حال بررسی»؟\')">🔍 شروع بررسی</a>';
+    if(st!=='done') btns+='<a class="btn ok" href="#" data-id="'+esc(r.id)+'" onclick="return act(\'resolve\',this.dataset.id,\'به کاربر اعلام بشه که پیگیری شد؟\')">☑ پیگیری شد</a>';
+  }
+  var okTag='';
+  if(DATA.sla&&r.mTotal!=null) okTag=r.mTotal<=slaOf(r).resolve?'<span class="tag ok-tag">✔ داخل هدف</span> ':'<span class="tag late-tag">✖ خارج از هدف</span> ';
+  var times='';
+  if(r.mReact!=null||r.mWork!=null||r.mTotal!=null){
+    times='<br>'+okTag+(r.mReact!=null?'<span class="tag">⏱ واکنش: '+dur(r.mReact)+'</span> ':'')+
+      (r.mWork!=null?'<span class="tag">بررسی تا جواب: '+dur(r.mWork)+'</span> ':'')+
+      (r.mTotal!=null?'<span class="tag">کل: '+dur(r.mTotal)+'</span> ':'')+
+      (r.actor?'<span class="tag">👤 '+esc(r.actor)+'</span>':'');
+  }
+  var sl=slaOf(r);
+  times=(times||'<br>')+' <span class="tag" title="هدف شروع بررسی / هدف پیگیری">🎯 '+dur(sl.review)+' / '+dur(sl.resolve)+'</span>';
+  var odTag=od?'<span class="tag late-tag">⏰ معوق '+dur(od.over)+(od.kind==='react'?' (شروع بررسی)':' (پیگیری)')+'</span> ':'';
+  return '<div class="row'+(od?' overdue':'')+'"><div class="r-main"><div class="r-title">'+esc(r.store)+' <span class="tag">'+esc(r.user)+'</span> '+odTag+'</div>'+
+    '<div class="r-sub"><b>'+esc(r.topic)+'</b> <span class="tag">'+esc(r.team)+'</span><br>'+esc(r.desc)+'<br>'+ltr(fa(esc(r.at)))+times+'</div></div>'+
+    '<div class="r-side">'+img+badge+btns+'</div></div>';
+}
+
+/* ---------- فروشگاه‌ها ---------- */
+var ST_LABEL={overdue:'دیرکرد',pending:'منتظر پرداخت',review:'نیازمند بررسی',ok:'بدون مشکل'};
+var ST_BADGE={overdue:'b-overdue',pending:'b-pending',review:'b-review',ok:'b-ok'};
+var ST_ORDER={overdue:0,pending:1,review:2,ok:3};
+function renderStores(){
+  var list=Object.keys(DATA._stores).map(function(n){return DATA._stores[n];});
+  var f=$('sStatus').value, q=($('sSearch').value||'').trim().toLowerCase();
+  list=list.filter(function(o){return storeOk(o.name)&&(!f||o.status===f)&&(!q||o.name.toLowerCase().indexOf(q)>-1);});
+  list.sort(function(a,b){return ST_ORDER[a.status]-ST_ORDER[b.status]||a.name.localeCompare(b.name,'fa');});
+  $('sCount').textContent=fa(list.length)+' فروشگاه';
+  if(!list.length){$('storeGrid').innerHTML='<div class="empty" style="grid-column:1/-1">فروشگاهی پیدا نشد</div>'; return;}
+  $('storeGrid').innerHTML=list.map(function(o){
+    var amount, line;
+    if(o.unsettled.length){
+      amount=tmnHtml(o.due);
+      var first=o.unsettled[0], cls=first.info.kind==='overdue'?'late':(first.info.ms<3*3600e3?'soon':'');
+      line='<span class="'+cls+'">⏰ '+esc(first.info.text)+'</span>'+(o.unsettled.length>1?' <span style="color:var(--mute)">(و '+fa(o.unsettled.length-1)+' تسویه‌ی دیگر)</span>':'');
+    } else {
+      amount='<span style="color:var(--green)">چیزی معوق نیست ✅</span>'; line='';
+    }
+    var foot=[];
+    foot.push(o.last?('آخرین رسید: '+ltr(fa(esc(o.last.jdate||jFull(o.last.date))))+' — '+tmnHtml(o.last.toman)):'رسیدی در این بازه ثبت نشده');
+    if(o.reviews) foot.push('⚠️ '+fa(o.reviews)+' رسید نیازمند بررسی');
+    if(o.support) foot.push('🎫 '+fa(o.support)+' درخواست بدون پاسخ');
+    return '<div class="scard '+o.status+'"><div class="sc-head"><span class="sc-name">'+esc(o.name)+'</span><span class="badge '+ST_BADGE[o.status]+'">'+ST_LABEL[o.status]+'</span></div>'+
+      '<div class="sc-amount">'+amount+'</div><div class="sc-line">'+line+'</div><div class="sc-foot">'+foot.join('<br>')+'</div></div>';
+  }).join('');
+}
+
+/* ---------- رسیدها ---------- */
+function tabReceipts(){
+  var cyc=$('rBasis').value==='cycle';
+  return DATA.receipts.filter(function(r){return storeOk(r.store)&&inRange('receipts',cyc?(r.cycle||r.date):r.date);});
+}
+function renderReceipts(){
+  var rs=tabReceipts(), total=rs.reduce(function(t,r){return t+r.toman;},0);
+  var cyc=$('rBasis').value==='cycle';
+  $('recTotal').innerHTML='<span style="color:var(--mute)">'+(cyc?'رسیدهای مربوط به تسویه‌های اعلام‌شده‌ی ':'رسیدهای ارسال‌شده ')+describe('receipts')+':</span> <b>'+num(rs.length)+'</b> رسید — جمعاً <b>'+tmnHtml(total)+'</b>';
+  if(!rs.length){$('recTable').innerHTML='<div class="empty">در این بازه رسیدی ثبت نشده</div>'; return;}
+  $('recTable').innerHTML='<table><thead><tr><th>تاریخ و ساعت رسید</th><th>فروشگاه</th><th>مبلغ</th><th>فرستنده</th><th>مربوط به اعلام تسویه‌ی</th></tr></thead><tbody>'+
+    rs.map(function(r){return '<tr><td>'+ltr(fa(esc(r.jdate||jFull(r.date))))+'</td><td>'+esc(r.store)+'</td><td>'+tmnHtml(r.toman)+'</td><td>'+esc(r.sender)+'</td><td>'+(r.cycle?ltr(jFull(r.cycle)):'—')+'</td></tr>';}).join('')+'</tbody></table>';
+}
+
+/* ---------- پشتیبانی ---------- */
+function filteredSupport(){
+  var st=$('fSupStatus').value, team=$('fTeam').value;
+  return DATA.support.filter(function(r){
+    if(!(inRange('support',r.date)&&storeOk(r.store)&&(!team||r.team===team))) return false;
+    if(!st) return true;
+    return st==='overdue'?!!supOverdue(r):supState(r)===st;
+  });
+}
+function renderSupport(){
+  var rs=filteredSupport(), c={wait:0,review:0,done:0}, od=0;
+  rs.forEach(function(r){c[supState(r)]++; if(supOverdue(r)) od++;});
+  $('supTotal').innerHTML='<span style="color:var(--mute)">درخواست‌های '+describe('support')+':</span> <b>'+num(rs.length)+'</b> درخواست — <b>'+num(c.wait)+'</b> در انتظار پیگیری، <b>'+num(c.review)+'</b> در حال بررسی، <b>'+num(c.done)+'</b> پیگیری شده'+(od?' — <b style="color:var(--red)">'+num(od)+' معوق</b>':'');
+  $('supportList').innerHTML=rs.length?rs.map(supportRow).join(''):'<div class="empty">درخواستی در این بازه نیست</div>';
+}
+
+/* ---------- گزارش ---------- */
+function hbars(id,items,fmtFn){
+  var box=$(id);
+  if(!items.length){box.innerHTML='<div class="empty">داده‌ای برای این بازه نیست</div>'; return;}
+  var max=Math.max.apply(null,items.map(function(i){return i[1];}))||1;
+  box.innerHTML=items.map(function(i){return '<div class="hb"><div class="hl" title="'+esc(i[0])+'">'+esc(i[0])+'</div><div class="ht"><div class="hf" style="width:'+Math.max(2,i[1]/max*100)+'%"></div></div><div class="hv">'+fmtFn(i[1])+'</div></div>';}).join('');
+}
+/* ---------- KPI پیگیری درخواست‌ها ---------- */
+function kstats(arr){
+  var v=arr.filter(function(x){return x!==null&&x!==undefined&&!isNaN(x);}).map(Number).sort(function(a,b){return a-b;});
+  if(!v.length) return {n:0,avg:null,med:null};
+  var sum=v.reduce(function(a,b){return a+b;},0), mid=Math.floor(v.length/2);
+  return {n:v.length,avg:sum/v.length,med:v.length%2?v[mid]:(v[mid-1]+v[mid])/2};
+}
+function isoAdd(iso,n){var d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n); return isoOf(d);}
+function isoDiff(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);}
+function niceStep(x){var e=Math.pow(10,Math.floor(Math.log(x)/Math.LN10)), m=x/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e;}
+function nn(x){return x!==null&&x!==undefined&&!isNaN(x);}
+function dlt(cur,prv){
+  if(!nn(cur)||!nn(prv)||prv===0) return '';
+  var p=Math.round((cur-prv)/prv*100);
+  if(p===0) return ' · بدون تغییر نسبت به دوره‌ی قبل';
+  return ' · <span style="color:'+(p<0?'var(--green)':'var(--red)')+';font-weight:700">'+(p<0?'▼ ':'▲ ')+fa(Math.abs(p))+'٪ '+(p<0?'سریع‌تر':'کندتر')+'</span> از دوره‌ی قبل';
+}
+function kpiGroup(list,keyFn){var g={}; list.forEach(function(r){var k=keyFn(r)||'نامشخص'; (g[k]||(g[k]=[])).push(r);}); return g;}
+
+function renderKpi(sp,prev){
+  var c={wait:0,review:0,done:0};
+  sp.forEach(function(r){c[supState(r)]++;});
+  var react=kstats(sp.map(function(r){return r.mReact;})),
+      work=kstats(sp.map(function(r){return r.mWork;})),
+      total=kstats(sp.map(function(r){return r.mTotal;}));
+  var pv=prev?{react:kstats(prev.map(function(r){return r.mReact;})).avg,work:kstats(prev.map(function(r){return r.mWork;})).avg,total:kstats(prev.map(function(r){return r.mTotal;})).avg}:{};
+  var rv=sp.map(function(r){return r.mReact;}).filter(nn), tv=sp.map(function(r){return r.mTotal;}).filter(nn);
+  var okR=sp.filter(function(r){return nn(r.mReact)&&r.mReact<=slaOf(r).review;}).length,
+      okT=sp.filter(function(r){return nn(r.mTotal)&&r.mTotal<=slaOf(r).resolve;}).length;
+  var pR=rv.length?Math.round(okR/rv.length*100):null, pT=tv.length?Math.round(okT/tv.length*100):null;
+  var od=sp.filter(function(r){return supOverdue(r);}).length;
+  var pct=sp.length?Math.round(c.done/sp.length*100):0;
+  function kc(cls,val,label,sub,spk){return '<div class="big '+cls+'" style="cursor:default">'+(spk?'<div class="spk">'+spk+'</div>':'')+'<div class="n" style="font-size:22px">'+val+'</div><div class="l">'+label+'</div><div class="s">'+sub+'</div></div>';}
+  function sub(s){return s.n?'میانه: '+dur(s.med)+' — از '+num(s.n)+' درخواست':'هنوز داده‌ای نیست';}
+  $('kpiCards').innerHTML=
+    kc('amber',dur(react.avg),'میانگین زمان واکنش','از ثبت تا شروع بررسی. '+sub(react)+dlt(react.avg,pv.react))+
+    kc('blue',dur(work.avg),'میانگین زمان بررسی تا جواب','از شروع اقدام تا جواب به وندور. '+sub(work)+dlt(work.avg,pv.work))+
+    kc('green',dur(total.avg),'میانگین کل (ثبت تا پیگیری)',sub(total)+dlt(total.avg,pv.total))+
+    kc('blue',num(c.done)+' از '+num(sp.length),'درخواست پیگیری‌شده',fa(pct)+'٪ — '+num(c.wait)+' در انتظار، '+num(c.review)+' در حال بررسی')+
+    kc(pR==null?'':(pR>=80?'green':'amber'),pR==null?'—':fa(pR)+'٪','داخل هدف: شروع بررسی','هدف: '+slaLabel(sp,'review')+' — '+num(okR)+' از '+num(rv.length))+
+    kc(pT==null?'':(pT>=80?'green':'amber'),pT==null?'—':fa(pT)+'٪','داخل هدف: پیگیری','هدف: '+slaLabel(sp,'resolve')+' — '+num(okT)+' از '+num(tv.length))+
+    kc('red'+(od?'':' zero'),num(od),'معوق الان',od?'باز و خارج از هدف زمانی':'همه داخل هدف 👌');
+
+  function row(name,list){
+    var cc={wait:0,review:0,done:0}; list.forEach(function(r){cc[supState(r)]++;});
+    var a=kstats(list.map(function(r){return r.mReact;})), b=kstats(list.map(function(r){return r.mWork;})), t=kstats(list.map(function(r){return r.mTotal;}));
+    var tl=list.filter(function(r){return nn(r.mTotal);}), okp=tl.length?Math.round(tl.filter(function(r){return r.mTotal<=slaOf(r).resolve;}).length/tl.length*100):null;
+    return {name:name,n:list.length,wait:cc.wait,review:cc.review,done:cc.done,react:a.avg,work:b.avg,total:t.avg,okp:okp};
+  }
+  function table(title,first,rows){
+    if(!rows.length) return '';
+    var body=rows.map(function(x){return '<tr><td>'+esc(x.name)+'</td><td>'+num(x.n)+'</td><td>'+num(x.wait)+'</td><td>'+num(x.review)+'</td><td>'+num(x.done)+'</td><td>'+dur(x.react)+'</td><td>'+dur(x.work)+'</td><td>'+dur(x.total)+'</td><td>'+(x.okp==null?'—':fa(x.okp)+'٪')+'</td></tr>';}).join('');
+    return '<h3 style="margin:14px 0 6px">'+title+'</h3><table><thead><tr><th>'+first+'</th><th>تعداد</th><th>در انتظار</th><th>در حال بررسی</th><th>پیگیری‌شده</th><th>میانگین واکنش</th><th>میانگین بررسی تا جواب</th><th>میانگین کل</th><th>داخل هدف پیگیری</th></tr></thead><tbody>'+body+'</tbody></table>';
+  }
+  var byTeam=kpiGroup(sp,function(r){return r.team;});
+  var byActor=kpiGroup(sp.filter(function(r){return supState(r)!=='wait';}),function(r){return r.actor;});
+  var teamRows=Object.keys(byTeam).sort().map(function(k){return row(k,byTeam[k]);});
+  var actorRows=Object.keys(byActor).sort().map(function(k){return row(k,byActor[k]);});
+  $('kpiTable').innerHTML=sp.length?table('به تفکیک تیم','تیم',teamRows)+table('به تفکیک اقدام‌کننده (داشبوردی که اقدام کرده)','اقدام‌کننده',actorRows):'<div class="empty">درخواستی در این بازه نیست</div>';
+  DATA._kpi=teamRows.map(function(x){return [x.name,x.n,x.wait,x.review,x.done,x.react==null?'':Math.round(x.react),x.work==null?'':Math.round(x.work),x.total==null?'':Math.round(x.total),x.okp==null?'':x.okp];});
+}
+
+/* ---------- نمودارهای روند (SVG) ---------- */
+/* ---------- ابزار نمودار (SVG خالص؛ بدون کتابخانه‌ی خارجی، آفلاین هم کار می‌کنه) ---------- */
+var PAL=['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)','var(--c7)','var(--c8)'];
+var WD=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+var _gid=0;
+(function(){
+  var tip=document.createElement('div'); tip.id='tip'; document.body.appendChild(tip);
+  function up(e){var t=e.target; while(t&&t.nodeType===1){ if(t.getAttribute('data-tip')) return t; t=t.parentNode;} return null;}
+  function show(e){
+    var t=up(e); if(!t){tip.style.display='none'; return;}
+    tip.textContent=t.getAttribute('data-tip'); tip.style.display='block';
+    var w=tip.offsetWidth,h=tip.offsetHeight, x=Math.min(window.innerWidth-w-8,Math.max(8,e.clientX-w/2)), y=e.clientY-h-14; if(y<8) y=e.clientY+18;
+    tip.style.left=x+'px'; tip.style.top=y+'px';
+  }
+  document.addEventListener('mousemove',show);
+  document.addEventListener('click',function(e){ show(e); if(tip.style.display==='block') setTimeout(function(){tip.style.display='none';},2200); });
+  document.addEventListener('scroll',function(){tip.style.display='none';},true);
+})();
+function tipA(t){return ' data-tip="'+esc(t)+'"';}
+function pctTxt(v,t){return fa(Math.round(v/t*100))+'٪';}
+function chartBox(title,body,wide){return '<div class="chart-box'+(wide?' wide':'')+'"><h3>'+title+'</h3>'+body+'</div>';}
+function legendHtml(items){return '<div class="lg">'+items.map(function(i){return '<span><i style="background:'+i.c+'"></i>'+esc(i.n)+'</span>';}).join('')+'</div>';}
+function topEntries(map,n){
+  var ks=Object.keys(map).sort(function(a,b){return map[b]-map[a];}), out=ks.slice(0,n).map(function(k){return [k,map[k]];});
+  if(ks.length>n){var rest=0; ks.slice(n).forEach(function(k){rest+=map[k];}); out.push(['سایر',rest]);}
+  return out;
+}
+function pieItems(entries){return entries.map(function(e,i){return {name:e[0],v:e[1],c:e[0]==='سایر'?'var(--c7)':PAL[i%PAL.length]};});}
+function arcPath(cx,cy,R,r,a1,a2){
+  var l=(a2-a1)>Math.PI?1:0;
+  function P(rad,a){return (cx+rad*Math.cos(a)).toFixed(2)+' '+(cy+rad*Math.sin(a)).toFixed(2);}
+  return 'M'+P(R,a1)+' A'+R+' '+R+' 0 '+l+' 1 '+P(R,a2)+' L'+P(r,a2)+' A'+r+' '+r+' 0 '+l+' 0 '+P(r,a1)+' Z';
+}
+/* نمودار دونات (پای‌چارت) + راهنما. items: [{name,v,c}] — o: {label, fmt, centerVal} */
+function donutSvg(items,o){
+  o=o||{}; items=items.filter(function(i){return i.v>0;});
+  var tot=items.reduce(function(t,i){return t+i.v;},0), fmt=o.fmt||function(v){return fa(v);};
+  if(!tot) return '<div class="empty">داده‌ای برای این بازه نیست</div>';
+  var cx=80,cy=80,R=72,r=48,a=-Math.PI/2,paths='';
+  items.forEach(function(it){
+    var a2=a+it.v/tot*2*Math.PI, tipT=it.name+': '+fmt(it.v)+' ('+pctTxt(it.v,tot)+')';
+    if(items.length===1) paths+='<circle class="sl" cx="'+cx+'" cy="'+cy+'" r="'+((R+r)/2)+'" fill="none" style="stroke:'+it.c+';stroke-width:'+(R-r)+'"'+tipA(tipT)+'/>';
+    else paths+='<path class="sl" d="'+arcPath(cx,cy,R,r,a,a2)+'" style="fill:'+it.c+';stroke:var(--surface);stroke-width:2"'+tipA(tipT)+'/>';
+    a=a2;
+  });
+  var center='<text class="dn" x="'+cx+'" y="'+(cy+2)+'" text-anchor="middle">'+(o.centerVal||fa(tot))+'</text><text class="dlb" x="'+cx+'" y="'+(cy+18)+'" text-anchor="middle">'+(o.label||'مجموع')+'</text>';
+  var leg=items.map(function(it){return '<div class="dl-row"><span class="sw" style="background:'+it.c+'"></span><span class="dl-n" title="'+esc(it.name)+'">'+esc(it.name)+'</span><span class="dl-v">'+fmt(it.v)+'</span><span class="dl-p">'+pctTxt(it.v,tot)+'</span></div>';}).join('');
+  return '<div class="donut"><svg viewBox="0 0 160 160" role="img">'+paths+center+'</svg><div class="dleg">'+leg+'</div></div>';
+}
+function sparkSvg(v,color){
+  var W=84,H=26,n=v.length; if(n<2) return '';
+  var mx=Math.max.apply(null,v.concat([1])), p=v.map(function(x,i){return [i*(W-4)/(n-1)+2,H-3-(H-6)*x/mx];});
+  var line=p.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ');
+  var area='M'+p[0][0].toFixed(1)+','+(H-1)+' L'+p.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' L')+' L'+p[n-1][0].toFixed(1)+','+(H-1)+' Z';
+  return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><path d="'+area+'" style="fill:'+color+';opacity:.15"/><polyline points="'+line+'" fill="none" style="stroke:'+color+';stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/></svg>';
+}
+function yTicks(max,tk,ml,W,mr,mt,ph,fmtT){
+  var g='',t; for(t=0;t<=tk;t++){var y=mt+ph-ph*t/tk; g+='<line class="gl" x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y+'" y2="'+y+'"'+(t?' stroke-dasharray="3 4"':'')+'/><text class="ax" x="'+(ml-7)+'" y="'+(y+4)+'" text-anchor="end">'+fmtT(max*t/tk)+'</text>';}
+  return g;
+}
+function fnum(x){return fa(String(Math.round(x*100)/100).replace('.','٫'));}
+/* ستون‌های ساده: labels/vals + tipFn(label,value,index) */
+function columnsSvg(labels,vals,color,tipFn,o){
+  o=o||{}; var W=o.W||720,H=o.H||220,ml=38,mr=8,mt=16,mb=30,n=labels.length;
+  if(!n) return '<div class="empty">داده‌ای برای این بازه نیست</div>';
+  var max=Math.max.apply(null,vals.concat([1])), step=max<=4?1:niceStep(max/4), tk=Math.max(1,Math.ceil(max/step)); max=step*tk;
+  var pw=W-ml-mr, ph=H-mt-mb, slot=pw/n, bw=Math.max(4,Math.min(30,slot*0.62)), g=yTicks(max,tk,ml,W,mr,mt,ph,fnum), ev=o.every||Math.ceil(n/12);
+  labels.forEach(function(l,i){
+    var v=vals[i], h=ph*v/max, x=ml+slot*i+(slot-bw)/2;
+    if(v>0) g+='<rect class="cbar" x="'+x+'" y="'+(mt+ph-h)+'" width="'+bw+'" height="'+h+'" rx="3" style="fill:'+color+'"'+tipA(tipFn(l,v,i))+'/>';
+    if(o.vals&&v>0) g+='<text class="ax" x="'+(x+bw/2)+'" y="'+(mt+ph-h-5)+'" text-anchor="middle" style="font-weight:700">'+fnum(v)+'</text>';
+    if(i%ev===0) g+='<text class="ax" x="'+(ml+slot*(i+0.5))+'" y="'+(H-mb+17)+'" text-anchor="middle">'+l+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;direction:ltr" role="img">'+g+'</svg>';
+}
+/* ستون‌های گروهی چندسری: روزها + series:[{name,color,vals}] */
+function barsSvg(days,series){
+  var W=720,H=230,ml=38,mr=8,mt=16,mb=34,n=days.length;
+  var max=1; series.forEach(function(s){s.vals.forEach(function(v){if(v>max) max=v;});});
+  var step=max<=4?1:Math.max(1,Math.ceil(niceStep(max/4))), tk=Math.ceil(max/step); max=step*tk;
+  var pw=W-ml-mr, ph=H-mt-mb, slot=pw/n, bw=Math.max(3,Math.min(14,slot/(series.length+0.8))), gap=2, g=yTicks(max,tk,ml,W,mr,mt,ph,fnum), lab=Math.ceil(n/12);
+  days.forEach(function(d,i){
+    var w=series.length*bw+(series.length-1)*gap, x0=ml+slot*i+(slot-w)/2;
+    series.forEach(function(s,j){var v=s.vals[i], h=ph*v/max; if(v>0) g+='<rect class="cbar" x="'+(x0+j*(bw+gap))+'" y="'+(mt+ph-h)+'" width="'+bw+'" height="'+h+'" rx="2.5" style="fill:'+s.color+'"'+tipA(jFull(d)+' — '+s.name+': '+fa(v))+'/>';});
+    if(i%lab===0) g+='<text class="ax" x="'+(ml+slot*(i+0.5))+'" y="'+(H-mb+17)+'" text-anchor="middle">'+jShort(d)+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;direction:ltr" role="img">'+g+'</svg>';
+}
+/* خط + سطح زیرش؛ خط قرمز چین‌دار = هدف */
+function lineSvg(days,vals,color,target){
+  var W=720,H=230,ml=40,mr=8,mt=16,mb=34,n=days.length, id='lg'+(++_gid);
+  var mx=0; vals.forEach(function(v){if(nn(v)&&v>mx) mx=v;}); if(nn(target)&&target>mx) mx=target; if(!mx) mx=1;
+  var step=niceStep(mx/4), max=step*4, pw=W-ml-mr, ph=H-mt-mb, slot=pw/n, g=yTicks(max,4,ml,W,mr,mt,ph,fnum);
+  if(nn(target)){var ty=mt+ph-ph*target/max; g+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+ty+'" y2="'+ty+'" stroke-dasharray="6 4" style="stroke:var(--red);stroke-width:1.5"/><text class="ax" x="'+(W-mr)+'" y="'+(ty-5)+'" text-anchor="end" style="fill:var(--red);font-weight:700">هدف</text>';}
+  var lab=Math.ceil(n/12), segs=[[]], dots='';
+  days.forEach(function(d,i){
+    var x=ml+slot*(i+0.5);
+    if(nn(vals[i])){var y=mt+ph-ph*vals[i]/max; segs[segs.length-1].push([x,y]); dots+='<circle class="cbar" cx="'+x+'" cy="'+y+'" r="3.6" style="fill:var(--surface);stroke:'+color+';stroke-width:2"'+tipA(jFull(d)+' — '+dur(vals[i]*60))+'/>';}
+    else if(segs[segs.length-1].length) segs.push([]);
+    if(i%lab===0) g+='<text class="ax" x="'+x+'" y="'+(H-mb+17)+'" text-anchor="middle">'+jShort(d)+'</text>';
+  });
+  var defs='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:'+color+';stop-opacity:.28"/><stop offset="1" style="stop-color:'+color+';stop-opacity:0"/></linearGradient></defs>';
+  segs.forEach(function(s){
+    if(s.length<2) return;
+    var pts=s.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);});
+    g+='<path d="M'+s[0][0].toFixed(1)+','+(mt+ph)+' L'+pts.join(' L')+' L'+s[s.length-1][0].toFixed(1)+','+(mt+ph)+' Z" fill="url(#'+id+')"/><polyline points="'+pts.join(' ')+'" fill="none" style="stroke:'+color+';stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round"/>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;direction:ltr" role="img">'+defs+g+dots+'</svg>';
+}
+/* نمودارهای توزیعی تب KPI (دونات‌ها + هیستوگرام زمان پیگیری) */
+function kpiPies(sp){
+  if(!sp.length) return '';
+  var st={wait:0,review:0,done:0}, ok=0,late=0,odO=0,inO=0, team={}, b=[0,0,0,0,0];
+  sp.forEach(function(r){
+    st[supState(r)]++;
+    var t=r.team||'نامشخص'; team[t]=(team[t]||0)+1;
+    if(supState(r)==='done'){ if(nn(r.mTotal)){ if(r.mTotal<=slaOf(r).resolve) ok++; else late++; var m=r.mTotal; b[m<30?0:m<60?1:m<240?2:m<1440?3:4]++; } }
+    else { if(supOverdue(r)) odO++; else inO++; }
+  });
+  var bl=['کمتر از ۳۰ دقیقه','۳۰ دقیقه تا ۱ ساعت','۱ تا ۴ ساعت','۴ تا ۲۴ ساعت','بیشتر از ۱ روز'];
+  return chartBox('وضعیت تیکت‌ها',donutSvg([{name:'در انتظار پیگیری',v:st.wait,c:'var(--amber)'},{name:'در حال بررسی',v:st.review,c:'var(--blue)'},{name:'پیگیری شده',v:st.done,c:'var(--green)'}],{label:'تیکت'}))+
+    chartBox('رعایت هدف زمانی',donutSvg([{name:'بسته‌شده داخل هدف',v:ok,c:'var(--green)'},{name:'بسته‌شده با تاخیر',v:late,c:'var(--amber)'},{name:'باز و معوق',v:odO,c:'var(--red)'},{name:'باز، داخل هدف',v:inO,c:'var(--c7)'}],{label:'تیکت'}))+
+    chartBox('سهم تیم‌ها',donutSvg(pieItems(topEntries(team,6)),{label:'تیکت'}))+
+    chartBox('توزیع زمان پیگیری <small>تیکت‌های بسته‌شده</small>',columnsSvg(bl,b,'var(--c2)',function(l,v){return l+' — '+fa(v)+' تیکت';},{vals:true,every:1}),true);
+}
+function renderKpiCharts(sp,r){
+  var all=DATA.support.filter(function(x){return storeOk(x.store);});
+  var f=r.f, t=r.t, pies=kpiPies(sp);
+  if(!f||!t){
+    var ds=sp.map(function(x){return x.date;}).filter(Boolean).sort();
+    f=f||ds[0]||TD; t=t||ds[ds.length-1]||TD;
+  }
+  var n=isoDiff(f,t)+1;
+  if(n>62){f=isoAdd(t,-61); n=62;}
+  if(n<2){$('kpiCharts').innerHTML=pies+'<div class="chart-box wide"><div class="empty">برای دیدن نمودار روند، بازه‌ی بیشتر از یک روز انتخاب کن (مثلاً «۷ روز اخیر»).</div></div>'; return;}
+  var days=[], i; for(i=0;i<n;i++) days.push(isoAdd(f,i));
+  var created=days.map(function(d){return sp.filter(function(x){return x.date===d;}).length;});
+  var closed=days.map(function(d){return all.filter(function(x){return x.doneDate===d;}).length;});
+  var avgT=days.map(function(d){var a=kstats(sp.filter(function(x){return x.date===d;}).map(function(x){return x.mTotal;})).avg; return nn(a)?a/60:null;});
+  var tgt=slaUniform(sp,'resolve');
+  $('kpiCharts').innerHTML=pies+
+    chartBox('تیکت‌های ثبت‌شده و پیگیری‌شده در هر روز',legendHtml([{n:'ثبت‌شده',c:'var(--c1)'},{n:'پیگیری‌شده',c:'var(--c2)'}])+barsSvg(days,[{name:'ثبت‌شده',color:'var(--c1)',vals:created},{name:'پیگیری‌شده',color:'var(--c2)',vals:closed}]),true)+
+    chartBox('میانگین زمان کل پیگیری (ساعت)','<div class="hint" style="margin:0 0 6px">به تفکیک روز ثبت تیکت — '+(tgt==null?'هدف‌ها بر اساس موضوع/تیم متفاوته، پس خط هدف نداره':'خط قرمز = هدف زمانی')+'</div>'+lineSvg(days,avgT,'var(--c3)',tgt==null?null:tgt/60),true);
+}
+
+/* ---------- تحلیل علت‌ها: موضوعات و فروشگاه‌ها ---------- */
+function renderKpiInsights(sp){
+  if(!sp.length){$('kpiInsights').innerHTML=''; return;}
+  function openN(l){return l.filter(function(r){return supState(r)!=='done';}).length;}
+  function odN(l){return l.filter(function(r){return supOverdue(r);}).length;}
+  var byTopic=kpiGroup(sp,function(r){return r.topic;});
+  var tRows=Object.keys(byTopic).map(function(k){var l=byTopic[k]; return {k:k,n:l.length,avg:kstats(l.map(function(r){return r.mTotal;})).avg,open:openN(l)};}).sort(function(a,b){return b.n-a.n;}).slice(0,8);
+  var t1='<h3 style="margin:6px 0">🔝 پرتکرارترین موضوعات</h3><table><thead><tr><th>موضوع</th><th>تعداد</th><th>سهم</th><th>میانگین زمان کل</th><th>باز</th></tr></thead><tbody>'+
+    tRows.map(function(x){return '<tr><td>'+esc(x.k)+'</td><td>'+num(x.n)+'</td><td>'+fa(Math.round(x.n/sp.length*100))+'٪</td><td>'+dur(x.avg)+'</td><td>'+num(x.open)+'</td></tr>';}).join('')+'</tbody></table>';
+  var byStore=kpiGroup(sp,function(r){return r.store;});
+  var sRows=Object.keys(byStore).map(function(k){
+    var l=byStore[k], tp=kpiGroup(l,function(r){return r.topic;}), best='',bn=0;
+    Object.keys(tp).forEach(function(q){if(tp[q].length>bn){bn=tp[q].length; best=q;}});
+    return {k:k,n:l.length,open:openN(l),od:odN(l),rep:bn>=2?best+' ('+fa(bn)+' بار)':'—'};
+  }).sort(function(a,b){return b.n-a.n;}).slice(0,8);
+  var t2='<h3 style="margin:16px 0 6px">🏪 فروشگاه‌های با بیشترین تیکت</h3><table><thead><tr><th>فروشگاه</th><th>تعداد</th><th>باز</th><th>معوق</th><th>موضوع تکراری</th></tr></thead><tbody>'+
+    sRows.map(function(x){return '<tr><td>'+esc(x.k)+'</td><td>'+num(x.n)+'</td><td>'+num(x.open)+'</td><td'+(x.od?' style="color:var(--red);font-weight:700"':'')+'>'+num(x.od)+'</td><td>'+esc(x.rep)+'</td></tr>';}).join('')+'</tbody></table>'+
+    '<div class="hint" style="margin-top:6px">«موضوع تکراری» یعنی اون فروشگاه یه موضوع رو بیشتر از یک بار ثبت کرده؛ معمولاً نشونه‌ی مشکل ریشه‌ای‌ه.</div>';
+  $('kpiInsights').innerHTML=t1+t2;
+}
+
+function renderKpiTab(){
+  var r=norm(RANGE.kpi);
+  var sp=DATA.support.filter(function(x){return inRange('kpi',x.date)&&storeOk(x.store);});
+  var prev=null, pf='', pt='';
+  if(r.f&&r.t){
+    var n=isoDiff(r.f,r.t)+1; pt=isoAdd(r.f,-1); pf=isoAdd(pt,-(n-1));
+    prev=DATA.support.filter(function(x){return x.date&&x.date>=pf&&x.date<=pt&&storeOk(x.store);});
+    if(!prev.length) prev=null;
+  }
+  $('kpiTitle').innerHTML='KPI پیگیری درخواست‌ها — '+describe('kpi')+(prev?'<div class="hint" style="margin-top:2px">مقایسه با دوره‌ی قبل: '+ltr(jFull(pf))+' تا '+ltr(jFull(pt))+'</div>':'');
+  renderKpi(sp,prev);
+  renderKpiCharts(sp,r);
+  renderKpiInsights(sp);
+}
+
+function renderReport(){
+  var rs=DATA.receipts.filter(function(r){return inRange('report',r.date)&&storeOk(r.store);});
+  var sp=DATA.support.filter(function(r){return inRange('report',r.date)&&storeOk(r.store);});
+  $('repTitle').innerHTML='گزارش '+describe('report');
+  var daily={}, byStore={}, topics={};
+  rs.forEach(function(r){ if(r.date) daily[r.date]=(daily[r.date]||0)+r.toman; var b=byStore[r.store]||(byStore[r.store]={n:0,sum:0,sup:0}); b.n++; b.sum+=r.toman; });
+  sp.forEach(function(r){ var b=byStore[r.store]||(byStore[r.store]={n:0,sum:0,sup:0}); b.sup++; topics[r.topic]=(topics[r.topic]||0)+1; });
+
+  var days=Object.keys(daily).sort().slice(-30);
+  $('chDaily').innerHTML=days.length?columnsSvg(days.map(jShort),days.map(function(d){return Math.round(daily[d]/1e5)/10;}),'var(--c1)',function(l,v,i){return jFull(days[i])+' — '+fnum(v)+' میلیون تومان';},{every:Math.ceil(days.length/12)}):'<div class="empty">داده‌ای برای این بازه نیست</div>';
+  var names=Object.keys(byStore), sm={}, teamC={}, td={};
+  names.forEach(function(n){ if(byStore[n].sum>0) sm[n]=byStore[n].sum; });
+  var smTot=0; Object.keys(sm).forEach(function(n){smTot+=sm[n];});
+  $('chStore').innerHTML=donutSvg(pieItems(topEntries(sm,6)),{label:'میلیون تومان',centerVal:fnum(Math.round(smTot/1e5)/10),fmt:tmn});
+  sp.forEach(function(r){ var t=r.team||'نامشخص'; teamC[t]=(teamC[t]||0)+1; if(r.date) td[r.date]=(td[r.date]||0)+1; });
+  var tdays=Object.keys(td).sort().slice(-30);
+  $('chTick').innerHTML=tdays.length?columnsSvg(tdays.map(jShort),tdays.map(function(d){return td[d];}),'var(--c5)',function(l,v,i){return jFull(tdays[i])+' — '+fa(v)+' درخواست';},{every:Math.ceil(tdays.length/12)}):'<div class="empty">داده‌ای برای این بازه نیست</div>';
+  $('chTopic').innerHTML=donutSvg(pieItems(topEntries(topics,6)),{label:'درخواست'});
+  $('chTeam').innerHTML=donutSvg(pieItems(topEntries(teamC,6)),{label:'درخواست'});
+  hbars('chStoreTick',names.filter(function(n){return byStore[n].sup>0;}).sort(function(a,b){return byStore[b].sup-byStore[a].sup;}).slice(0,8).map(function(n){return [n,byStore[n].sup];}),function(v){return num(v)+' درخواست';});
+
+  names.sort(function(a,b){return byStore[b].sum-byStore[a].sum;});
+  if(!names.length){$('reportTable').innerHTML='<div class="empty">داده‌ای برای این بازه نیست</div>'; DATA._report=[]; return;}
+  var tn=0,ts=0,tp=0, R=feat('receipt');
+  var body=names.map(function(n){var b=byStore[n]; tn+=b.n; ts+=b.sum; tp+=b.sup; return '<tr><td>'+esc(n)+'</td>'+(R?'<td>'+num(b.n)+'</td><td>'+tmnHtml(b.sum)+'</td>':'')+'<td>'+num(b.sup)+'</td></tr>';}).join('');
+  $('reportTable').innerHTML='<table><thead><tr><th>فروشگاه</th>'+(R?'<th>تعداد رسید</th><th>جمع رسیدها</th>':'')+'<th>تعداد درخواست</th></tr></thead><tbody>'+body+'</tbody><tfoot><tr><td>جمع کل</td>'+(R?'<td>'+num(tn)+'</td><td>'+tmnHtml(ts)+'</td>':'')+'<td>'+num(tp)+'</td></tr></tfoot></table>';
+  DATA._report=names.map(function(n){var b=byStore[n]; return [n,b.n,b.sum,b.sup];});
+}
+
+/* ---------- گزینه‌های فیلتر ---------- */
+function fillSelect(id,first,values){
+  var s=$(id), cur=s.value;
+  s.innerHTML='<option value="">'+first+'</option>'+values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');
+  if(values.indexOf(cur)>-1) s.value=cur;
+}
+function fillFilters(){
+  var set={}; DATA.known.forEach(function(n){set[n]=1;});
+  ['receipts','settlements','reviews','support'].forEach(function(k){DATA[k].forEach(function(r){if(r.store) set[r.store]=1;});});
+  fillSelect('fStore','همه‌ی فروشگاه‌ها',Object.keys(set).sort(function(a,b){return a.localeCompare(b,'fa');}));
+  var teams={}; DATA.support.forEach(function(r){if(r.team) teams[r.team]=1;});
+  fillSelect('fTeam','همه‌ی تیم‌ها',Object.keys(teams).sort());
+}
+
+/* ---------- خلاصه‌ی مدیر ---------- */
+function inDays(iso,from,to){return !!iso&&iso>=from&&iso<=to;}
+function mgrPct(list){var v=list.filter(function(r){return nn(r.mTotal);}); if(!v.length) return null; return Math.round(v.filter(function(r){return r.mTotal<=slaOf(r).resolve;}).length/v.length*100);}
+function mgrArrow(cur,prv,goodUp,what){
+  what=what||'هفته‌ی قبل';
+  if(!nn(cur)||!nn(prv)) return '';
+  if(cur===prv) return 'بدون تغییر نسبت به '+what;
+  var up=cur>prv, good=goodUp?up:!up, p=prv?Math.round(Math.abs(cur-prv)/prv*100):null;
+  return '<span style="color:'+(good?'var(--green)':'var(--red)')+';font-weight:700">'+(up?'▲':'▼')+(p!=null?' '+fa(p)+'٪':'')+'</span> نسبت به '+what;
+}
+function renderManager(){
+  var D=DATA, w0=ago(6), p1=ago(13), p0=ago(7), sup=D.support;
+  var wk=sup.filter(function(r){return inDays(r.doneDate,w0,TD);}), pw=sup.filter(function(r){return inDays(r.doneDate,p1,p0);});
+  var today=sup.filter(function(r){return r.date===TD;}).length, lastDay=sup.filter(function(r){return r.date===ago(7);}).length;
+  var odT=sup.filter(function(r){return supOverdue(r);});
+  var odS=D.settlements.filter(function(s){return !s.paid&&s.info.kind==='overdue';});
+  var pendS=D.settlements.filter(function(s){return !s.paid&&s.info.kind!=='overdue';});
+  var revs=D.reviews.filter(function(r){return r.state==='pending';}).length;
+  var pc=mgrPct(wk), ppc=mgrPct(pw);
+  function rsum(f,t){return D.receipts.filter(function(r){return inDays(r.date,f,t);}).reduce(function(a,r){return a+r.toman;},0);}
+  var rcW=rsum(w0,TD), rcP=rsum(p1,p0), odSum=odS.reduce(function(a,s){return a+s.toman;},0);
+  var bad=odT.length+odS.length;
+  var light=(bad>=3||(pc!=null&&pc<60))?'red':((bad>0||revs||(pc!=null&&pc<80))?'amber':'green');
+  var lt={red:['🔴','نیاز به اقدام فوری'],amber:['🟡','قابل کنترل، چند مورد باز هست'],green:['🟢','همه‌چیز روبه‌راهه']}[light];
+  var why=[];
+  if(odT.length) why.push(num(odT.length)+' تیکت معوق');
+  if(odS.length) why.push(num(odS.length)+' تسویه‌ی دیرکرد');
+  if(revs) why.push(num(revs)+' رسید منتظر بررسی');
+  if(pc!=null&&pc<80) why.push('فقط '+fa(pc)+'٪ تیکت‌های این هفته داخل هدف بسته شدن');
+  $('mgrLight').className='mlight '+light;
+  $('mgrLight').innerHTML='<span class="ml-ic">'+lt[0]+'</span><div><b>'+lt[1]+'</b><div class="hint">'+(why.length?why.join(' · '):'هیچ مورد معوقی نیست')+'</div></div>';
+  function kc(cls,val,label,sub){return '<div class="big '+cls+'" style="cursor:default"><div class="n" style="font-size:24px">'+val+'</div><div class="l">'+label+'</div><div class="s">'+sub+'</div></div>';}
+  $('mgrCards').innerHTML=
+    kc('blue',num(today),'تیکت ثبت‌شده‌ی امروز',mgrArrow(today,lastDay,false,'همین روزِ هفته‌ی قبل'),(function(){var a=[],i; for(i=13;i>=0;i--){(function(d){a.push(sup.filter(function(r){return r.date===d;}).length);})(ago(i));} return sparkSvg(a,'var(--c1)');})())+
+    kc('red'+(odT.length?'':' zero'),num(odT.length),'تیکت معوق (الان)',odT.length?'خارج از هدف زمانی':'همه داخل هدف 👌')+
+    kc(pc==null?'':(pc>=80?'green':'amber'),pc==null?'—':fa(pc)+'٪','بسته‌شده داخل هدف (۷ روز)',pc==null?'هنوز تیکتی بسته نشده':mgrArrow(pc,ppc,true))+
+    (feat('receipt')?kc('green',tmn(rcW),'تسویه‌ی دریافت‌شده (۷ روز)',mgrArrow(rcW,rcP,true)):'')+
+    (feat('settle')?kc('red'+(odS.length?'':' zero'),tmn(odSum),'تسویه‌ی دیرکرد',num(odS.length)+' مورد'+(pendS.length?' — '+num(pendS.length)+' مورد دیگه منتظر پرداخت':'')):'');
+  renderProblemStores(); renderTeamPerf(); renderMgrTrend();
+}
+function renderProblemStores(){
+  var from=ago(29), st={};
+  function g(n){return st[n]||(st[n]={name:n,odS:0,odSum:0,odT:0,open:0,topics:{}});}
+  DATA.settlements.forEach(function(s){ if(!s.paid&&s.info.kind==='overdue'){var o=g(s.store); o.odS++; o.odSum+=s.toman;} });
+  DATA.support.forEach(function(r){
+    var o;
+    if(supState(r)!=='done'){o=g(r.store); o.open++; if(supOverdue(r)) o.odT++;}
+    if(inDays(r.date,from,TD)){o=g(r.store); o.topics[r.topic]=(o.topics[r.topic]||0)+1;}
+  });
+  var list=Object.keys(st).map(function(k){
+    var o=st[k]; o.rep=Object.keys(o.topics).filter(function(t){return o.topics[t]>=2;}).sort(function(a,b){return o.topics[b]-o.topics[a];});
+    o.score=o.odS*3+o.odT*2+o.rep.length*2+o.open; return o;
+  }).filter(function(o){return o.odS||o.odT||o.rep.length;}).sort(function(a,b){return b.score-a.score;}).slice(0,10);
+  if(!list.length){$('mgrStores').innerHTML='<div class="empty">فروشگاه مشکل‌داری نیست 👌</div>'; return;}
+  $('mgrStores').innerHTML='<table><thead><tr><th>فروشگاه</th>'+(feat('settle')?'<th>دیرکرد پرداخت</th>':'')+'<th>تیکت باز / معوق</th><th>موضوع تکراری (۳۰ روز)</th></tr></thead><tbody>'+list.map(function(o){
+    return '<tr><td><b>'+esc(o.name)+'</b></td>'+(feat('settle')?'<td'+(o.odS?' class="late"':'')+'>'+(o.odS?num(o.odS)+' مورد — '+tmn(o.odSum):'—')+'</td>':'')+
+      '<td>'+num(o.open)+(o.odT?' / <span class="late">'+num(o.odT)+' معوق</span>':'')+'</td>'+
+      '<td>'+(o.rep.length?o.rep.slice(0,2).map(function(t){return esc(t)+' ('+fa(o.topics[t])+' بار)';}).join('، '):'—')+'</td></tr>';
+  }).join('')+'</tbody></table>';
+}
+function renderTeamPerf(){
+  var from=ago(29), g={}, NONAME='بدون نام (رمز مشترک)';
+  DATA.support.forEach(function(r){
+    var st=supState(r); if(st==='wait') return;
+    var k=r.actor||NONAME, o=g[k]||(g[k]={name:k,done:0,tot:[],rea:[],ok:0,okN:0,open:0,od:0});
+    if(st==='done'&&inDays(r.doneDate,from,TD)){
+      o.done++;
+      if(nn(r.mTotal)){o.tot.push(r.mTotal); o.okN++; if(r.mTotal<=slaOf(r).resolve) o.ok++;}
+      if(nn(r.mReact)) o.rea.push(r.mReact);
+    }
+    if(st==='review'){o.open++; if(supOverdue(r)) o.od++;}
+  });
+  var rows=Object.keys(g).map(function(k){return g[k];}).filter(function(o){return o.done||o.open;}).sort(function(a,b){return b.done-a.done;});
+  if(!rows.length){$('mgrTeam').innerHTML='<div class="empty">در ۳۰ روز اخیر کسی تیکتی رو پیگیری نکرده</div>'; return;}
+  var note=g[NONAME]?'<div class="hint" style="margin-top:8px">«بدون نام» یعنی با رمز مشترک وارد داشبورد شدن. برای اینکه عملکرد هر نفر جدا دیده بشه، هر کارشناس باید با حساب شخصی خودش وارد بشه.</div>':'';
+  $('mgrTeam').innerHTML='<table><thead><tr><th>کارشناس</th><th>بسته‌شده</th><th>میانگین واکنش</th><th>میانگین کل</th><th>داخل هدف</th><th>در دست بررسی</th></tr></thead><tbody>'+rows.map(function(o){
+    var p=o.okN?Math.round(o.ok/o.okN*100):null;
+    return '<tr><td><b>'+esc(o.name)+'</b></td><td>'+num(o.done)+'</td><td>'+dur(kstats(o.rea).avg)+'</td><td>'+dur(kstats(o.tot).avg)+'</td>'+
+      '<td'+(p!=null&&p<80?' class="late"':'')+'>'+(p==null?'—':fa(p)+'٪')+'</td><td>'+num(o.open)+(o.od?' (<span class="late">'+num(o.od)+' معوق</span>)':'')+'</td></tr>';
+  }).join('')+'</tbody></table>'+note;
+}
+function renderMgrTrend(){
+  var days=[],i; for(i=29;i>=0;i--) days.push(ago(i));
+  var S=DATA.support, S30=S.filter(function(x){return inDays(x.date,days[0],TD);});
+  var created=days.map(function(d){return S.filter(function(x){return x.date===d;}).length;});
+  var closed=days.map(function(d){return S.filter(function(x){return x.doneDate===d;}).length;});
+  var avgT=days.map(function(d){var a=kstats(S.filter(function(x){return x.date===d;}).map(function(x){return x.mTotal;})).avg; return nn(a)?a/60:null;});
+  var tg=slaUniform(S,'resolve');
+  $('mgrTrend1').innerHTML=legendHtml([{n:'ثبت‌شده',c:'var(--c1)'},{n:'بسته‌شده',c:'var(--c2)'}])+barsSvg(days,[{name:'ثبت‌شده',color:'var(--c1)',vals:created},{name:'بسته‌شده',color:'var(--c2)',vals:closed}]);
+  $('mgrTrend2').innerHTML='<div class="hint" style="margin:0 0 6px">به تفکیک روز ثبت تیکت'+(tg!=null?' — خط قرمز = هدف زمانی':'')+'</div>'+lineSvg(days,avgT,'var(--c3)',tg==null?null:tg/60);
+  var st={wait:0,review:0,done:0}, ok=0,late=0,odO=0,inO=0, team={}, tp={}, hr=[], wd=[0,0,0,0,0,0,0], k;
+  for(k=0;k<24;k++) hr.push(0);
+  S30.forEach(function(r){
+    st[supState(r)]++;
+    var t=r.team||'نامشخص'; team[t]=(team[t]||0)+1; tp[r.topic]=(tp[r.topic]||0)+1;
+    if(supState(r)==='done'){ if(nn(r.mTotal)){ if(r.mTotal<=slaOf(r).resolve) ok++; else late++; } } else { if(supOverdue(r)) odO++; else inO++; }
+    if(nn(r.hour)) hr[r.hour]++; if(nn(r.wd)) wd[r.wd]++;
+  });
+  $('mgrStatus').innerHTML=donutSvg([{name:'در انتظار پیگیری',v:st.wait,c:'var(--amber)'},{name:'در حال بررسی',v:st.review,c:'var(--blue)'},{name:'پیگیری شده',v:st.done,c:'var(--green)'}],{label:'تیکت'});
+  $('mgrSla').innerHTML=donutSvg([{name:'بسته‌شده داخل هدف',v:ok,c:'var(--green)'},{name:'بسته‌شده با تاخیر',v:late,c:'var(--amber)'},{name:'باز و معوق',v:odO,c:'var(--red)'},{name:'باز، داخل هدف',v:inO,c:'var(--c7)'}],{label:'تیکت'});
+  $('mgrTeamPie').innerHTML=donutSvg(pieItems(topEntries(team,6)),{label:'تیکت'});
+  $('mgrHours').innerHTML=columnsSvg(hr.map(function(_,h){return fa(h);}),hr,'var(--c5)',function(l,v){return 'ساعت '+l+' — '+fa(v)+' تیکت';},{every:2,W:420,H:230});
+  $('mgrWeek').innerHTML=columnsSvg(WD,wd,'var(--c6)',function(l,v){return l+' — '+fa(v)+' تیکت';},{vals:true,every:1,W:420,H:230});
+  hbars('mgrTopics',Object.keys(tp).sort(function(a,b){return tp[b]-tp[a];}).slice(0,8).map(function(k){return [k,tp[k]];}),function(v){return num(v)+' تیکت';});
+}
+/* ---------- نوار هشدار بالای صفحه ---------- */
+function renderAlerts(){
+  var odT=DATA.support.filter(function(r){return supOverdue(r);}).length;
+  var odS=DATA.settlements.filter(function(s){return !s.paid&&s.info.kind==='overdue';}).length;
+  var parts=[];
+  if(odT) parts.push('<a href="#" onclick="return goAlert(\'sup\')">⏰ '+num(odT)+' تیکت از هدف زمانی رد شده</a>');
+  if(odS) parts.push('<a href="#" onclick="return goAlert(\'set\')">💸 '+num(odS)+' تسویه از مهلت پرداخت گذشته</a>');
+  $('alertBar').hidden=!parts.length; $('alertBar').innerHTML=parts.join('<span class="sep">|</span>');
+}
+function goAlert(k){
+  if(k==='sup'){ RANGE.support={f:'',t:''}; $('fSupStatus').value='overdue'; showTab('support'); save(); render(); }
+  else { RANGE.today={f:'',t:''}; showTab('today'); render(); goBlock('blk-overdue'); }
+  return false;
+}
+
+/* ---------- کنترل اصلی ---------- */
+function feat(k){ return !DATA.features || DATA.features[k]!==false; }
+function applyFeatures(){
+  document.body.classList.toggle('no-settle',!feat('settle'));
+  document.body.classList.toggle('no-review',!feat('review'));
+  document.body.classList.toggle('no-receipt',!feat('receipt'));
+}
+function setTheme(t){
+  document.body.classList.toggle('dark',t==='dark');
+  var b=$('themeBtn'); if(b) b.textContent=(t==='dark'?'☀':'☾');
+  try{localStorage.setItem('theme',t);}catch(e){}
+}
+(function(){
+  var t=null; try{t=localStorage.getItem('theme');}catch(e){}
+  if(!t) t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';
+  setTheme(t);
+  var b=$('themeBtn'); if(b) b.onclick=function(){setTheme(document.body.classList.contains('dark')?'light':'dark');};
+})();
+function render(){
+  applyFeatures(); fillFilters(); derive();
+  $('upd').innerHTML=ltr(fa(jFull(DATA.updated.slice(0,10))+' '+DATA.updated.slice(11,16)));
+  renderToday(); renderStores(); renderReceipts(); renderSupport(); renderKpiTab(); renderReport();
+  renderManager(); renderAlerts();
+}
+function showTab(t){
+  TAB=t; try{history.replaceState(null,'','#'+t);}catch(e){}
+  TABS.forEach(function(x){ $('tab-'+x).hidden=(x!==t); });
+  $('filters').hidden=(t==='manager');
+  Array.prototype.forEach.call($('tabs').children,function(b){b.classList.toggle('active',b.dataset.tab===t);});
+  writeBar();
+}
+Array.prototype.forEach.call($('tabs').children,function(b){b.addEventListener('click',function(){showTab(b.dataset.tab);});});
+['fStore','rBasis','fSupStatus','fTeam','sStatus'].forEach(function(id){$(id).addEventListener('change',function(){save();render();});});
+['dFrom','dTo'].forEach(function(id){$(id).addEventListener('change',readBar);});
+$('sSearch').addEventListener('input',renderStores);
+$('expReceipts').onclick=function(){exportCsv('رسیدها',['تاریخ رسید (شمسی)','فروشگاه','مبلغ (تومان)','فرستنده','مربوط به اعلام تسویه‌ی (میلادی)'],tabReceipts().map(function(r){return [r.jdate,r.store,r.toman,r.sender,r.cycle||''];}));};
+$('expSupport').onclick=function(){exportCsv('درخواست_ها',['تاریخ (شمسی)','فروشگاه','کاربر','موضوع','تیم','توضیحات','وضعیت','زمان واکنش (دقیقه)','زمان بررسی تا جواب (دقیقه)','زمان کل (دقیقه)','اقدام‌کننده','هدف شروع بررسی (دقیقه)','هدف پیگیری (دقیقه)'],filteredSupport().map(function(r){return [r.at,r.store,r.user,r.topic,r.team,r.desc,SUP_LABEL[supState(r)],r.mReact==null?'':Math.round(r.mReact),r.mWork==null?'':Math.round(r.mWork),r.mTotal==null?'':Math.round(r.mTotal),r.actor||'',Math.round(slaOf(r).review),Math.round(slaOf(r).resolve)];}));};
+$('expKpi').onclick=function(){exportCsv('KPI_پیگیری',['تیم','تعداد','در انتظار','در حال بررسی','پیگیری‌شده','میانگین واکنش (دقیقه)','میانگین بررسی تا جواب (دقیقه)','میانگین کل (دقیقه)','داخل هدف پیگیری (٪)'],DATA._kpi||[]);};
+$('expReport').onclick=function(){exportCsv('خلاصه_فروشگاه‌ها',['فروشگاه','تعداد رسید','جمع رسیدها (تومان)','تعداد درخواست'],DATA._report||[]);};
+
+function save(){try{sessionStorage.setItem('dashF2',JSON.stringify({R:RANGE,s:$('fStore').value,b:$('rBasis').value,d:TD}));}catch(e){}}
+function load(){
+  try{
+    var o=JSON.parse(sessionStorage.getItem('dashF2')||'{}');
+    if(o.R && o.d===TD){ TABS.forEach(function(t){ if(o.R[t]) RANGE[t]=o.R[t]; }); }  /* روز عوض شده باشه، پیش‌فرض‌ها برمی‌گردن */
+    window._wantStore=o.s||''; if(o.b) $('rBasis').value=o.b;
+  }catch(e){}
+}
+
+load(); render();
+if(window._wantStore){ $('fStore').value=window._wantStore; render(); }
+showTab(TAB);
+
+/* ---------- اقدام‌ها (فقط ادمین؛ سرور هم نقش و توکن امنیتی رو چک می‌کنه) ---------- */
+function toast(msg){var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(window._tt); window._tt=setTimeout(function(){t.hidden=true;},3500);}
+function act(kind,id,question,msg){
+  if(ROLE!=='admin') return false;
+  if(kind==='resolve'&&msg===undefined){ openResolve(id); return false; }
+  if(msg===undefined&&!confirm(question)) return false;
+  var body='type='+encodeURIComponent(kind)+'&id='+encodeURIComponent(id)+'&csrf='+encodeURIComponent(CSRF)+(msg?'&msg='+encodeURIComponent(msg):'');
+  fetch('/action',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body})
+    .then(function(r){ if(r.status===401){location.href='/login'; return null;} return r.json(); })
+    .then(function(j){ if(!j) return; toast(j.ok?'انجام شد ✅':'انجام نشد (شاید قبلاً رسیدگی شده)'); refreshData(); })
+    .catch(function(){toast('خطا در ارتباط با سرور');});
+  return false;
+}
+
+function openResolve(id){
+  var r=DATA.support.filter(function(x){return x.id===id;})[0];
+  $('rsInfo').textContent=r?(r.store+' — '+r.topic+(r.user?' — '+r.user:'')):'';
+  $('rsMsg').value=''; $('rsBox').hidden=false; $('rsMsg').focus();
+  $('rsSend').onclick=function(){ $('rsBox').hidden=true; act('resolve',id,'',$('rsMsg').value.trim()||' '); };
+}
+/* به‌روزرسانی خودکار بدون رفرش (اسکرول و فیلترها حفظ می‌شن) */
+function refreshData(){
+  fetch('dashboard.html?t='+Date.now(),{cache:'no-store'}).then(function(r){
+    if(r.redirected && /login/.test(r.url)){ location.href='/login'; return ''; }
+    return r.text();
+  }).then(function(t){
+    var m=/<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(t||'');
+    if(m){ try{ DATA=JSON.parse(m[1]); render(); }catch(e){} }
+  }).catch(function(){});
+}
+setInterval(refreshData,15000);
+$('whoami').textContent=(ROLE==='admin'?'🛡 ادمین':'👁 حالت مشاهده')+(USER?' — '+USER:'');
+/* نسخهٔ استاتیک (گیت‌هاب): دکمهٔ خروج لازم نیست */
+</script>
+</body>
+</html>
